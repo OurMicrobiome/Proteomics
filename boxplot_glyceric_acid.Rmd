@@ -18,7 +18,7 @@ data_ga_wrangled <- data_ga %>% gather("M_C_4_AB",	"M_C_7_AB",	"M_C_12_AB",	"M_C
 data_ga_wrangled$type <- c("MC", "MC", "MC", "MC", "MC", "MC", "MH", "MH", "MH", "MH", "MH", "MH", "MH", "MH", "MH", "MH", "OC", "OC", "OC", "OC", "OC", "OC", "OH", "OH", "OH", "OH", "OH")
 ```
 ```{r boxplot of glyceric acid frequencies}
-ga <- ggplot(data_ga_wrangled, aes(type, frequencies, fill=type)) + geom_boxplot() + geom_point()
+ga <- ggplot(data_ga_wrangled, aes(type, frequencies, fill=type)) + geom_boxplot() + geom_point() + labs(title="glyceric acid frequencies")
 ga
 ```
 
