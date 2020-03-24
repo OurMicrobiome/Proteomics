@@ -1,0 +1,29 @@
+---
+title: "glycolic acid boxplot"
+author: "Hanna Choi"
+date: "3/22/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+library(ggplot2)
+library(data.table)
+data <- as.data.frame(read.csv("EMSL_PNNL.csv"), header=TRUE)
+data_gla <- data[39,]
+data_gla_wrangled <- data_gla %>% gather("M_C_4_AB",	"M_C_7_AB",	"M_C_12_AB",	"M_C_14_AB",	"M_C_19_AB",	"M_C_30_AB",	"M_H_2_AB",	"M_H_2B",	"M_H_4_AB",	"M_H_11_AB",	"M_H_17_AB",	"M_H_26_AB",	"M_H_28_AB",	"M_H_30_AB",	"M_H_32_AB",	"M_H_34_AB",	"O_C_4_AB",	"O_C_12_AB",	"O_C_14_AB",	"O_C_19_AB",	"O_C_27_AB",	"O_C_34_AB",	"O_H_2_AB",	"O_H_4_AB",	"O_H_11_AB",	"O_H_17_AB",	"O_H_32_AB", key="type", value="frequencies")
+data_gla_wrangled$type <- c("MC", "MC", "MC", "MC", "MC", "MC", "MH", "MH", "MH", "MH", "MH", "MH", "MH", "MH", "MH", "MH", "OC", "OC", "OC", "OC", "OC", "OC", "OH", "OH", "OH", "OH", "OH")
+```
+```{r boxplot of glyceric acid frequencies}
+gla <- ggplot(data_gla_wrangled, aes(type, frequencies, fill=type)) + geom_boxplot() + geom_point() + labs(title="glycolic acid frequencies")
+gla
+```
+```{r logged frequencies}
+gla_log <- ggplot(data_gla_wrangled, aes(type, log(frequencies), fill=type)) + geom_boxplot() + geom_point() + labs(title="glycolic acid logged frequencies")
+gla_log
+```
+
