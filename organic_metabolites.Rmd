@@ -1,0 +1,46 @@
+---
+title: "Organic Metabolites"
+author: "Hanna Choi"
+date: "3/24/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{r}
+library(tidyverse)
+library(ggplot2)
+library(data.table)
+data <- as.data.frame(read.csv("EMSL_PNNL.csv"), header=TRUE)
+new_data <- data[c(36,17,47,39,110,12,103,55,7,124,54,181,27,138,10,141,87,118,209,26,132,1,38,48,125,23,123,35,90,6,63),]
+rownames(new_data) <- 1:nrow(new_data)
+```
+```{r ggplots in a for loop}
+plot_list = list()
+for (i in 1:32) {
+  data_i <- new_data[i,]
+  data_i_w <- data_i %>% gather("M_C_4_AB",	"M_C_7_AB",	"M_C_12_AB",	"M_C_14_AB",	"M_C_19_AB",	"M_C_30_AB",	"M_H_2_AB",	"M_H_2B",	"M_H_4_AB",	"M_H_11_AB",	"M_H_17_AB",	"M_H_26_AB",	"M_H_28_AB",	"M_H_30_AB",	"M_H_32_AB",	"M_H_34_AB",	"O_C_4_AB",	"O_C_12_AB",	"O_C_14_AB",	"O_C_19_AB",	"O_C_27_AB",	"O_C_34_AB",	"O_H_2_AB",	"O_H_4_AB",	"O_H_11_AB",	"O_H_17_AB",	"O_H_32_AB", key="type", value="frequencies")
+  data_i_w$type <- c("Mineral Controlled", "Mineral Controlled", "Mineral Controlled", "Mineral Controlled", "Mineral Controlled", "Mineral Controlled", "Mineral Heated", "Mineral Heated", "Mineral Heated", "Mineral Heated", "Mineral Heated", "Mineral Heated", "Mineral Heated", "Mineral Heated", "Mineral Heated", "Mineral Heated", "Organic Controlled", "Organic Controlled", "Organic Controlled", "Organic Controlled", "Organic Controlled", "Organic Controlled", "Organic Heated", "Organic Heated", "Organic Heated", "Organic Heated", "Organic Heated")
+  p = ggplot(data_i_w, aes(x=type, y=log(frequencies), fill=type)) +
+        geom_boxplot() +
+        scale_fill_manual(values=c("#808080", "#808080", "#808080", "#830300")) +
+        geom_point() +
+        labs(title=new_data[i,1]) +
+        xlab("Soil Condition") +
+        ylab("Logged Frequency")
+    plot_list[[i]] = p
+}
+```
+```{r saving as tiff}
+pdf("plots.pdf")
+for (i in 1:32) {
+      print(i)
+      print(plot_list[[i]])
+}
+dev.off()
+```
+
+
+
+
