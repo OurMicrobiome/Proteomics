@@ -1,5 +1,5 @@
 ---
-title: "Organic Metabolites"
+title: "Mineral Metabolites"
 author: "Hanna Choi"
 date: "3/24/2020"
 output: html_document
@@ -13,7 +13,7 @@ library(tidyverse)
 library(ggplot2)
 library(data.table)
 data <- as.data.frame(read.csv("EMSL_PNNL.csv"), header=TRUE)
-new_data <- data[c(36,17,47,39,110,12,103,55,7,124,54,181,27,138,10,141,87,118,209,26,132,1,38,48,125,23,123,35,90,6,63),]
+new_data <- data[c(92,91,51,50,52,103,38,55,12,59,47,99,5,125,182,114,7,27,56,57,76,62,132,111,106,173,201,121,81),]
 rownames(new_data) <- 1:nrow(new_data)
 ```
 ```{r ggplots in a for loop}
@@ -34,14 +34,10 @@ for (i in 1:32) {
 }
 ```
 ```{r saving as tiff}
-pdf("organic_metabolites_plots.pdf")
+pdf("mineral_metabolites_plots.pdf")
 for (i in 1:32) {
       print(i)
       print(plot_list[[i]])
 }
 dev.off()
 ```
-
-
-
-
