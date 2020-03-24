@@ -1,0 +1,36 @@
+---
+title: "Prote-Home Page"
+author: "Hanna Choi"
+date: "3/24/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Welcome to Proteomics!
+  
+  
+#### Hanna Choi's Ongoing work:  
+
+###### Looking at Specific Metabolites
+* Boxplot for Glyceric Acid; its difference between the **organic** controlled and heated conditions are the most statistically significant in the samples.
+
+  [Glyceric Acid](Metabolites_Boxplots/boxplot_glyceric_acid.html)
+  
+* Boxplot for L-leucine; its difference between the **mineral** controlled and heated conditions are the third most stiatically signficant after two unknown metabolites.
+
+  [L-Leucine](Metabolites_Boxplots/boxplot_L_leucine.html)
+  
+* Additional Metabolites:
+ 
+  [D-glucagonic acid](Metabolites_Boxplots/boxplot_D_glucagonic.html)
+ 
+  [L-glutamic acid](Metabolites_Boxplots/boxplot_L_glutamic_acid.html)
+ 
+  [glycolic acid](Metabolites_Boxplots/boxplot_glycolic_acid.html)
+ 
+  [L-isoleucine](Metabolites_Boxplots/boxplot_L_isoleucine.html)
+  
+
