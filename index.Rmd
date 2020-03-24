@@ -15,13 +15,15 @@ knitr::opts_chunk$set(echo = TRUE)
 #### Hanna Choi's Ongoing work:  
 
 ###### Looking at Specific Metabolites
-* Boxplot for Glyceric Acid; its difference between the **organic** controlled and heated conditions are the most statistically significant in the samples.
+* Boxplot for **Glyceric Acid**  
+Its difference between the **organic** controlled and heated conditions are the most statistically significant in the samples.
 
-  [Glyceric Acid](Metabolites_Boxplots/boxplot_glyceric_acid.html)
+  [Glyceric Acid](Metabolites_Boxplots/glyceric_acid.png)
   
-* Boxplot for L-leucine; its difference between the **mineral** controlled and heated conditions are the third most stiatically signficant after two unknown metabolites.
+* Boxplot for **L-leucine**  
+Its difference between the **mineral** controlled and heated conditions are the third most stiatically signficant after two unknown metabolites.
 
-  [L-Leucine](Metabolites_Boxplots/boxplot_L_leucine.html)
+  [L-Leucine](Metabolites_Boxplots/L_leucine.png)
   
 * Additional Metabolites:
  
