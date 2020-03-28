@@ -18,26 +18,91 @@ rownames(new_data) <- 1:nrow(new_data)
 ```
 ```{r ggplots in a for loop}
 plot_list = list()
-for (i in 1:32) {
+for (i in 1:29) {
   data_i <- new_data[i,]
   data_i_w <- data_i %>% gather("M_C_4_AB",	"M_C_7_AB",	"M_C_12_AB",	"M_C_14_AB",	"M_C_19_AB",	"M_C_30_AB",	"M_H_2_AB",	"M_H_2B",	"M_H_4_AB",	"M_H_11_AB",	"M_H_17_AB",	"M_H_26_AB",	"M_H_28_AB",	"M_H_30_AB",	"M_H_32_AB",	"M_H_34_AB",	"O_C_4_AB",	"O_C_12_AB",	"O_C_14_AB",	"O_C_19_AB",	"O_C_27_AB",	"O_C_34_AB",	"O_H_2_AB",	"O_H_4_AB",	"O_H_11_AB",	"O_H_17_AB",	"O_H_32_AB", key="type", value="frequencies")
   data_i_w$type <- c("Mineral Controlled", "Mineral Controlled", "Mineral Controlled", "Mineral Controlled", "Mineral Controlled", "Mineral Controlled", "Mineral Heated", "Mineral Heated", "Mineral Heated", "Mineral Heated", "Mineral Heated", "Mineral Heated", "Mineral Heated", "Mineral Heated", "Mineral Heated", "Mineral Heated", "Organic Controlled", "Organic Controlled", "Organic Controlled", "Organic Controlled", "Organic Controlled", "Organic Controlled", "Organic Heated", "Organic Heated", "Organic Heated", "Organic Heated", "Organic Heated")
-  p = ggplot(data_i_w, aes(x=type, y=log(frequencies), fill=type)) +
+  p = ggplot(data_i_w, aes(x=type, y=log(frequencies), fill=type, show.legend=FALSE)) +
         geom_boxplot() +
-        scale_fill_manual(values=c("#808080", "#808080", "#B43757", "#830300")) +
+        scale_fill_manual(values=c("#B43757", "#830300", "#FAFAFA", "#808080")) +
         scale_alpha(range=c(.1, .1, .2, 1.)) +
-        geom_point() +
+        geom_point(show.legend = FALSE) +
         labs(title=new_data[i,1]) +
-        xlab("Soil Condition") +
-        ylab("Logged Frequency")
-    plot_list[[i]] = p
+        theme(plot.title = element_text(size=7)) +
+        theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(), 
+        axis.title.y=element_blank())
+  plot_list[[i]] = p
 }
 ```
 ```{r saving as tiff}
 pdf("mineral_metabolites_plots.pdf")
-for (i in 1:32) {
+for (i in 1:29) {
       print(i)
       print(plot_list[[i]])
 }
 dev.off()
 ```
+
+```{r function to make grid.arrange with one legend}
+library(gridExtra)
+library(grid)
+
+
+grid_arrange_shared_legend <- function(..., ncol = length(list(...)), nrow = 1, position = c("bottom", "right")) {
+
+  plots <- list(...)
+  position <- match.arg(position)
+  g <- ggplotGrob(plots[[1]] + theme(legend.position = position))$grobs
+  legend <- g[[which(sapply(g, function(x) x$name) == "guide-box")]]
+  lheight <- sum(legend$height)
+  lwidth <- sum(legend$width)
+  gl <- lapply(plots, function(x) x + theme(legend.position="none"))
+  gl <- c(gl, ncol = ncol, nrow = nrow)
+
+  combined <- switch(position,
+                     "bottom" = arrangeGrob(do.call(arrangeGrob, gl),
+                                            legend,
+                                            ncol = 1,
+                                            heights = unit.c(unit(1, "npc") - lheight, lheight)),
+                     "right" = arrangeGrob(do.call(arrangeGrob, gl),
+                                           legend,
+                                           ncol = 2,
+                                           widths = unit.c(unit(1, "npc") - lwidth, lwidth)))
+
+  grid.newpage()
+  grid.draw(combined)
+
+  # return gtable invisibly
+  invisible(combined)
+
+}
+
+```
+```{r plot}
+### all known metabolites: 3,4,5,7,8,9,10,11,13,17,18,19,20,21,22,24,28,29
+p4 <- plot_list[[4]]  ### L-isoleucine
+p5 <- plot_list[[5]]  ## L-phenylalanine 5 ROWS REMOVED
+p7 <- plot_list[[7]]  ### glycine
+p8 <- plot_list[[8]]  ### L-serine
+p9 <- plot_list[[9]]  ### beta-cyano-L-alanine
+p10 <- plot_list[[10]] ### L-valine 
+p11 <- plot_list[[11]] ### L-glutamic acid
+p13 <- plot_list[[13]] ## 3-amino-2-piperidone HAS ASTERISK
+p17 <- plot_list[[17]] ## GABA
+p18 <- plot_list[[18]] ## fumaric acid 1 ROW REMOVED
+p19 <- plot_list[[19]] ## L-threonic acid 10 ROWS REMOVED
+p20 <- plot_list[[20]] ### L-threonine
+p21 <- plot_list[[21]] ### thymine
+p22 <- plot_list[[22]] ## maltotriose 17 ROWS REMOVED
+p24 <- plot_list[[24]] ## Unknown 028 10 ROWS REMOVED
+p28 <- plot_list[[28]] ## Unknown 038 3 ROWS REMOVED
+p29 <- plot_list[[29]] ### uracil
+
+plot_all <- grid_arrange_shared_legend(p4, p5,p7,p8,p9,p10,p11,p13,p17,p18,p19,p20,p21,p22,p29, ncol = 6, nrow = 4)
+plot(plot_all)
+```
+### L-leucine will be edite into this plot in the open area
+
+
+
