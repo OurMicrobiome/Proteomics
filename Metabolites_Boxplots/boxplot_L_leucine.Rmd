@@ -22,8 +22,9 @@ data_Ll_wrangled$type <- c("Mineral Controlled", "Mineral Controlled", "Mineral 
 Ll <- ggplot(data_Ll_wrangled, aes(type, log(frequencies), fill=type)) + 
   geom_boxplot() + 
   geom_point() +
-  scale_fill_manual(values=c("#808080", "#800000", "#808080", "#800000")) +
-  labs(title="L-leucine logged frequencies")
+  scale_fill_manual(values=c("#B43757", "#830300", "#FAFAFA", "#808080")) +
+  labs(title="L-leucine logged frequencies") +
+  theme(legend.position="none")
 print(Ll)
 png("L_leucine.png", width = 350, height = 350)
 plot(Ll, nrow=2, ncol=1)
