@@ -24,7 +24,7 @@ for (i in 1:31) {
   data_i_w$type <- c("Mineral Controlled", "Mineral Controlled", "Mineral Controlled", "Mineral Controlled", "Mineral Controlled", "Mineral Controlled", "Mineral Heated", "Mineral Heated", "Mineral Heated", "Mineral Heated", "Mineral Heated", "Mineral Heated", "Mineral Heated", "Mineral Heated", "Mineral Heated", "Mineral Heated", "Organic Controlled", "Organic Controlled", "Organic Controlled", "Organic Controlled", "Organic Controlled", "Organic Controlled", "Organic Heated", "Organic Heated", "Organic Heated", "Organic Heated", "Organic Heated")
  p = ggplot(data_i_w, aes(x=type, y=log(frequencies), fill=type, show.legend=FALSE)) +
         geom_boxplot() +
-        scale_fill_manual(values=c("#B43757", "#830300", "#FAFAFA", "#808080")) +
+        scale_fill_manual(values=c("#FAFAFA", "#808080","#B43757", "#830300")) +
         scale_alpha(range=c(.1, .1, .2, 1.)) +
         geom_point(show.legend = FALSE) +
         labs(title=new_data[i,1]) +
