@@ -18,30 +18,87 @@ rownames(new_data) <- 1:nrow(new_data)
 ```
 ```{r ggplots in a for loop}
 plot_list = list()
-for (i in 1:32) {
+for (i in 1:31) {
   data_i <- new_data[i,]
   data_i_w <- data_i %>% gather("M_C_4_AB",	"M_C_7_AB",	"M_C_12_AB",	"M_C_14_AB",	"M_C_19_AB",	"M_C_30_AB",	"M_H_2_AB",	"M_H_2B",	"M_H_4_AB",	"M_H_11_AB",	"M_H_17_AB",	"M_H_26_AB",	"M_H_28_AB",	"M_H_30_AB",	"M_H_32_AB",	"M_H_34_AB",	"O_C_4_AB",	"O_C_12_AB",	"O_C_14_AB",	"O_C_19_AB",	"O_C_27_AB",	"O_C_34_AB",	"O_H_2_AB",	"O_H_4_AB",	"O_H_11_AB",	"O_H_17_AB",	"O_H_32_AB", key="type", value="frequencies")
   data_i_w$type <- c("Mineral Controlled", "Mineral Controlled", "Mineral Controlled", "Mineral Controlled", "Mineral Controlled", "Mineral Controlled", "Mineral Heated", "Mineral Heated", "Mineral Heated", "Mineral Heated", "Mineral Heated", "Mineral Heated", "Mineral Heated", "Mineral Heated", "Mineral Heated", "Mineral Heated", "Organic Controlled", "Organic Controlled", "Organic Controlled", "Organic Controlled", "Organic Controlled", "Organic Controlled", "Organic Heated", "Organic Heated", "Organic Heated", "Organic Heated", "Organic Heated")
-  p = ggplot(data_i_w, aes(x=type, y=log(frequencies), fill=type)) +
+ p = ggplot(data_i_w, aes(x=type, y=log(frequencies), fill=type, show.legend=FALSE)) +
         geom_boxplot() +
-        scale_fill_manual(values=c("#808080", "#808080", "#B43757", "#830300")) +
+        scale_fill_manual(values=c("#B43757", "#830300", "#FAFAFA", "#808080")) +
         scale_alpha(range=c(.1, .1, .2, 1.)) +
-        geom_point() +
+        geom_point(show.legend = FALSE) +
         labs(title=new_data[i,1]) +
-        xlab("Soil Condition") +
-        ylab("Logged Frequency")
-    plot_list[[i]] = p
+        theme(plot.title = element_text(size=7)) +
+        theme(axis.title.x=element_blank(),
+        axis.title.y=element_blank())
+  plot_list[[i]] = p
 }
 ```
-```{r saving as tiff}
+```{r saving as pdf}
 pdf("organic_metabolites_plots.pdf")
-for (i in 1:32) {
+for (i in 1:31) {
       print(i)
       print(plot_list[[i]])
 }
 dev.off()
 ```
+```{r}
+p1 <- plot_list[[1]]  ### glyceric acid
+p1 + theme(plot.title = element_text(size=13))
+p2 <- plot_list[[2]]  ### D-glucagonic acid
+p3 <- plot_list[[3]]  ### L-glutamic acid
+p4 <- plot_list[[4]]  ### glycolic acid
+p6 <- plot_list[[6]]  ### beta-cyano-L-alanine 
+p8 <- plot_list[[8]]  ### L-serine
+p9 <- plot_list[[9]]  ### GABA 1 ROW REMOVED
+p11 <- plot_list[[11]] ### L-pyroglutamic acid
+p13 <- plot_list[[13]] ## fumaric acid 1 REMOVED ROW
+p15 <- plot_list[[15]] ### arbutin 8 ROWS REMOVED
+p20 <- plot_list[[20]] ### ethanolamine
+p22 <- plot_list[[22]] ### 1,3-dihydroxyacetone
+p23 <- plot_list[[23]] ### glycine
+p24 <- plot_list[[24]] ### L-glutamine
+p26 <- plot_list[[26]] ### D-ribose
+p28 <- plot_list[[28]] ### glyceraldehyde
+p30 <- plot_list[[30]] ### 3-hydroxybutyric acid
+p31 <- plot_list[[31]] ### melezitose
+```
+```{r}
+library(gridExtra)
+library(grid)
 
 
+grid_arrange_shared_legend <- function(..., ncol = length(list(...)), nrow = 1, position = c("bottom", "right")) {
 
+  plots <- list(...)
+  position <- match.arg(position)
+  g <- ggplotGrob(plots[[1]] + theme(legend.position = position))$grobs
+  legend <- g[[which(sapply(g, function(x) x$name) == "guide-box")]]
+  lheight <- sum(legend$height)
+  lwidth <- sum(legend$width)
+  gl <- lapply(plots, function(x) x + theme(legend.position="none"))
+  gl <- c(gl, ncol = ncol, nrow = nrow)
+
+  combined <- switch(position,
+                     "bottom" = arrangeGrob(do.call(arrangeGrob, gl),
+                                            legend,
+                                            ncol = 1,
+                                            heights = unit.c(unit(1, "npc") - lheight, lheight)),
+                     "right" = arrangeGrob(do.call(arrangeGrob, gl),
+                                           legend,
+                                           ncol = 2,
+                                           widths = unit.c(unit(1, "npc") - lwidth, lwidth)))
+
+  grid.newpage()
+  grid.draw(combined)
+
+  # return gtable invisibly
+  invisible(combined)
+
+}
+
+
+plot_all <- grid_arrange_shared_legend(p2,p3,p4,p6,p8,p9,p11,p13,p15,p20,p22,p23,p24,p26, p28, ncol = 6, nrow = 4)
+plot(plot_all)
+```
 

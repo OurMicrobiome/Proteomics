@@ -102,7 +102,7 @@ p29 <- plot_list[[29]] ### uracil
 plot_all <- grid_arrange_shared_legend(p4, p5,p7,p8,p9,p10,p11,p13,p17,p18,p19,p20,p21,p22,p29, ncol = 6, nrow = 4)
 plot(plot_all)
 ```
-### L-leucine will be edite into this plot in the open area
+### L-leucine will be edited into this plot in the open area
 
 
 
