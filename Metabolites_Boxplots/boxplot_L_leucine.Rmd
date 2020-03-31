@@ -26,20 +26,19 @@ Ll <- ggplot(data_Ll_wrangled, aes(type, frequencies, fill=type)) +
   labs(title="L-leucine frequencies") +
   theme(legend.position="none")
 print(Ll)
-png("L_leucine.png", width = 350, height = 350)
-plot(Ll, nrow=2, ncol=1)
-while (!is.null(dev.list()))  dev.off()
 
-log_Ll <- ggplot(data_Ll_wrangled, aes(type, log(frequencies), fill=type)) + 
+log_Ll <- ggplot(data_Ll_wrangled, aes(type, frequencies, fill=type)) + 
   geom_boxplot() + 
   geom_point() +
   scale_fill_manual(values=c("#B43757", "#830300", "#FAFAFA", "#808080")) +
-  labs(title="L-leucine logged frequencies") +
-  theme(legend.position="none")
+  labs(title="L-leucine frequencies") +
+  theme(legend.position="none") +
+  scale_y_log10(breaks = trans_breaks("log10", function(x) 10^x),
+              labels = trans_format("log10", math_format(.x)))
+png("L_leucine.png", width = 350, height = 350)
 print(log_Ll)
-png("log_L_leucine.png", width = 350, height = 350)
-plot(Ll, nrow=2, ncol=1)
 while (!is.null(dev.list()))  dev.off()
 
 ```
+
 

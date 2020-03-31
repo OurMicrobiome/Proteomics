@@ -11,7 +11,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r}
 library(tidyverse)
 library(ggplot2)
-library(data.table)
+library(scales)
 data <- as.data.frame(read.csv("EMSL_PNNL.csv"), header=TRUE)
 new_data <- data[c(92,91,51,50,52,103,38,55,12,59,47,99,5,125,182,114,7,27,56,57,76,62,132,111,106,173,201,121,81),]
 rownames(new_data) <- 1:nrow(new_data)
@@ -22,7 +22,7 @@ for (i in 1:29) {
   data_i <- new_data[i,]
   data_i_w <- data_i %>% gather("M_C_4_AB",	"M_C_7_AB",	"M_C_12_AB",	"M_C_14_AB",	"M_C_19_AB",	"M_C_30_AB",	"M_H_2_AB",	"M_H_2B",	"M_H_4_AB",	"M_H_11_AB",	"M_H_17_AB",	"M_H_26_AB",	"M_H_28_AB",	"M_H_30_AB",	"M_H_32_AB",	"M_H_34_AB",	"O_C_4_AB",	"O_C_12_AB",	"O_C_14_AB",	"O_C_19_AB",	"O_C_27_AB",	"O_C_34_AB",	"O_H_2_AB",	"O_H_4_AB",	"O_H_11_AB",	"O_H_17_AB",	"O_H_32_AB", key="type", value="frequencies")
   data_i_w$type <- c("Mineral Controlled", "Mineral Controlled", "Mineral Controlled", "Mineral Controlled", "Mineral Controlled", "Mineral Controlled", "Mineral Heated", "Mineral Heated", "Mineral Heated", "Mineral Heated", "Mineral Heated", "Mineral Heated", "Mineral Heated", "Mineral Heated", "Mineral Heated", "Mineral Heated", "Organic Controlled", "Organic Controlled", "Organic Controlled", "Organic Controlled", "Organic Controlled", "Organic Controlled", "Organic Heated", "Organic Heated", "Organic Heated", "Organic Heated", "Organic Heated")
-  p = ggplot(data_i_w, aes(x=type, y=log(frequencies), fill=type, show.legend=FALSE)) +
+  p = ggplot(data_i_w, aes(x=type, y=frequencies, fill=type, show.legend=FALSE)) +
         geom_boxplot() +
         scale_fill_manual(values=c("#B43757", "#830300", "#FAFAFA", "#808080")) +
         scale_alpha(range=c(.1, .1, .2, 1.)) +
@@ -31,7 +31,9 @@ for (i in 1:29) {
         theme(plot.title = element_text(size=7)) +
         theme(axis.title.x=element_blank(),
         axis.text.x=element_blank(), 
-        axis.title.y=element_blank())
+        axis.title.y=element_blank()) +
+        scale_y_log10(breaks = trans_breaks("log10", function(x) 10^x),
+              labels = trans_format("log10", math_format(.x)))
   plot_list[[i]] = p
 }
 ```
