@@ -16,12 +16,17 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ##### Boxplots of Metabolites
 
+    
+  * Mineral Metabolites
+  
+    ![](Metabolites_Boxplots/mm_plots.png)
 
-  * [Mineral Metabolites](Metabolites_Boxplots/mm_plots.png)
+  * Organic Metabolites
+  
+    ![](Metabolites_Boxlot/om_plots.png)
 
-  * [Organic Metabolites](organic_metabolites_plots.pdf)
 
-          The Organic Metabolites Image is **not** done
-          
 ##### Tutorial will be inserted below
+
+  * ![Boxplot Tutorial in R](Metabolites_Boxplots/boxplot_tutorial.html)
       
