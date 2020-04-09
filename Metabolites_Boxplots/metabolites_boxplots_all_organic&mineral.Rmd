@@ -1,0 +1,149 @@
+---
+title: "metabolites boxplots"
+author: "Hanna Choi"
+date: "4/7/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{r}
+library(tidyverse)
+library(ggplot2)
+library(scales)
+```
+
+```{r cleaned up data}
+data <- read.csv("EMSL_PNNL.csv", header=TRUE)
+o_data <- data[c(36,17,47,39,110,12,103,55,7,124,54,181,27,138,10,141,87,118,209,26,132,1,38,48,125,23,123,35,90,6,63),c(1,18:28)]
+rownames(o_data) <- 1:nrow(o_data)
+```
+```{r}
+
+```
+
+```{r fig.length=60, fig.width=30}
+plot_list = list()
+for (i in 1:31) {
+  data_i <- o_data[i,]
+  new_o_data <- data_i %>% gather("O_C_4_AB" ,  "O_C_12_AB" , "O_C_14_AB",  "O_C_19_AB"  ,"O_C_27_AB" , "O_C_34_AB" , "O_H_2_AB",   "O_H_4_AB" ,  "O_H_11_AB",  "O_H_17_AB",  "O_H_32_AB" , key="type", value="frequencies")
+  new_o_data$type <- gsub("O_C_\\d+_[A-Z][A-Z]", "OC", new_o_data$type)
+  new_o_data$type <- gsub("O_H_\\d+_[A-Z][A-Z]", "OH", new_o_data$type)
+ p = ggplot(new_o_data, aes(x=type, y=frequencies, fill=type, show.legend=FALSE)) +
+        geom_boxplot(aes(fill=type), width=0.5) +
+        scale_fill_manual(values=c("#f46d43","#d73027")) +
+        geom_point(show.legend = FALSE, size=1) +
+        labs(title=o_data[i,1]) +
+        theme(plot.title = element_text(size=7)) +
+        theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(), 
+        axis.title.y=element_blank()) +
+        scale_y_log10(breaks = trans_breaks("log10", function(x) 10^x),
+              labels = trans_format("log10", math_format(.x)))
+  plot_list[[i]] = p
+}
+plot_list[[1]]
+```
+```{r}
+lplot_list = list()
+for (i in 1:31){
+  l <- plot_list[[i]] + theme(legend.position = "none")
+  lplot_list[[i]] = l
+}
+```
+```{r}
+library(cowplot)
+legend <- get_legend(plot_list[[1]])
+p1 <- plot_list[[1]] + theme(plot.title = element_text(size=13)) + theme(plot.background = element_rect(fill = "#74add1"))
+p1
+p <- plot_grid(p1)
+```
+```{r}
+for (i in c(3,6,8,9,13,23)){
+  lplot_list[[i]] <- lplot_list[[i]] + theme(plot.background = element_rect(fill = "#abd9e9"))
+}
+```
+```{r}
+big <- plot_grid(lplot_list[[3]], lplot_list[[6]], lplot_list[[8]], lplot_list[[9]], lplot_list[[13]], lplot_list[[23]])
+pbig <- plot_grid(p, big)
+pbig
+for (i in c(2,4,7,11,15,20,22,24,26,28,30,31)){
+  lplot_list[[i]]<- lplot_list[[i]] + theme(plot.background = element_rect(fill = "#e0f3f8"))
+}
+significants <- plot_grid(lplot_list[[2]], lplot_list[[4]],lplot_list[[7]],lplot_list[[11]],lplot_list[[15]],lplot_list[[20]],lplot_list[[22]],lplot_list[[24]],lplot_list[[26]],lplot_list[[28]],lplot_list[[30]],lplot_list[[31]])
+library(grid)
+grid <- plot_grid(pbig,significants, ncol=1, nrow=2)
+grid
+```
+```{r}
+library(gridExtra)
+Significant_Organic_Metabolites<-grid.arrange(top="Significant Organic Metabolites", grid)
+png("om_plots.png")
+plot(Significant_Organic_Metabolites)
+dev.off()
+```
+### MINERAL METABOLITES ###
+```{r}
+m <- data[c(92,91,51,50,52,103,38,55,12,59,47,99,5,125,182,114,7,27,56,57,76,62,132,111,106,173,201,121,81),c(1:17)]
+rownames(m) <- 1:nrow(m)
+m
+```
+```{r}
+mp = list()
+for (i in 1:29) {
+  md <- m[i,]
+  newmd <- md %>% gather("M_C_4_AB",	"M_C_7_AB",	"M_C_12_AB",	"M_C_14_AB",	"M_C_19_AB",	"M_C_30_AB",	"M_H_2_AB",	"M_H_2B",	"M_H_4_AB",	"M_H_11_AB",	"M_H_17_AB",	"M_H_26_AB",	"M_H_28_AB",	"M_H_30_AB",	"M_H_32_AB",	"M_H_34_AB", key="type", value="frequencies")
+  newmd$type <- gsub("M_C_\\d+_AB", "MC", newmd$type)
+  newmd$type <- gsub("M_H_\\d+_AB", "MH", newmd$type)
+  newmd$type <- gsub("M_H_2B", "MH", newmd$type)
+  q = ggplot(newmd, aes(x=type, y=frequencies, fill=type, show.legend=FALSE)) +
+        geom_boxplot(aes(fill=type), width=0.5) +
+        scale_fill_manual(values=c("#f46d43","#d73027")) +
+        geom_point(show.legend = FALSE, size=1) +
+        labs(title=m[i,1]) +
+        theme(plot.title = element_text(size=7)) +
+        theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(), 
+        axis.title.y=element_blank()) +
+        scale_y_log10(breaks = trans_breaks("log10", function(x) 10^x),
+              labels = trans_format("log10", math_format(.x)))
+  mp[[i]] = q
+}
+mp[[4]]
+```
+```{r}
+lmp = list()
+for (i in 1:29){
+  l <- mp[[i]] + theme(legend.position = "none")
+  lmp[[i]] = l
+}
+```
+```{r}
+m3 <- mp[[3]] + theme(plot.title = element_text(size=13)) + theme(plot.background = element_rect(fill = "#74add1"))
+m_3 <- plot_grid(m3)
+```
+```{r}
+for (i in c(7,8,9,11,17,18)){
+  lmp[[i]] <- lmp[[i]] + theme(plot.background = element_rect(fill = "#abd9e9"))
+}
+```
+```{r}
+bigm <- plot_grid(lmp[[7]], lmp[[8]], lmp[[9]], lmp[[11]], lmp[[17]], lmp[[18]])
+mbigm <- plot_grid(m_3, bigm)
+mbigm
+for (i in c(1,4,5,10,13,19,20,21,22,24,28,29)){
+  lmp[[i]]<- lmp[[i]] + theme(plot.background = element_rect(fill = "#e0f3f8"))
+}
+msignificants <- plot_grid(lmp[[1]],lmp[[4]], lmp[[5]],lmp[[10]],lmp[[13]],lmp[[19]],lmp[[20]],lmp[[21]],lmp[[22]],lmp[[24]],lmp[[28]],lmp[[29]])
+mgrid <- plot_grid(mbigm,msignificants, ncol=1, nrow=2)
+```
+```{r}
+Significant_Mineral_Metabolites<- grid.arrange(top="Significant Mineral Metabolites", mgrid)
+png("mm_plots.png")
+plot(Significant_Mineral_Metabolites)
+dev.off()
+```
+
+
+
