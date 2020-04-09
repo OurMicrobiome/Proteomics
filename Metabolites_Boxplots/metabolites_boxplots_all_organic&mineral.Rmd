@@ -32,7 +32,7 @@ for (i in 1:31) {
   new_o_data$type <- gsub("O_H_\\d+_[A-Z][A-Z]", "OH", new_o_data$type)
  p = ggplot(new_o_data, aes(x=type, y=frequencies, fill=type, show.legend=FALSE)) +
         geom_boxplot(aes(fill=type), width=0.5) +
-        scale_fill_manual(values=c("#f9cfcf", "#f9cfcf")) +
+        scale_fill_manual(values=c("#ffffff", "#f9cfcf")) +
         geom_point(show.legend = FALSE, size=1) +
         labs(title=o_data[i,1]) +
         theme(plot.title = element_text(size=7)) +
@@ -99,7 +99,7 @@ for (i in 1:29) {
   newmd$type <- gsub("M_H_2B", "MH", newmd$type)
   q = ggplot(newmd, aes(x=type, y=frequencies, fill=type, show.legend=FALSE)) +
         geom_boxplot(aes(fill=type), width=0.5) +
-        scale_fill_manual(values=c("#f9cfcf", "#f9cfcf")) +
+        scale_fill_manual(values=c("#ffffff", "#f9cfcf")) +
         geom_point(show.legend = FALSE, size=1) +
         labs(title=m[i,1]) +
         theme(plot.title = element_text(size=7)) +
