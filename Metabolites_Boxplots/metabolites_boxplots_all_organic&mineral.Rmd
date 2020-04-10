@@ -35,7 +35,7 @@ for (i in 1:31) {
         scale_fill_manual(values=c("#ffffff", "#f9cfcf")) +
         geom_point(show.legend = FALSE, size=1) +
         labs(title=o_data[i,1]) +
-        theme(plot.title = element_text(size=7)) +
+        theme(axis.text.x=element_text(color="white"), axis.text.y=element_text(color="white"), plot.title = element_text(size=7, color="white")) +        
         theme(axis.title.x=element_blank(),
         axis.text.x=element_blank(), 
         axis.title.y=element_blank()) +
@@ -54,10 +54,9 @@ for (i in 1:31){
 ```
 ```{r}
 library(cowplot)
-legend <- get_legend(plot_list[[1]])
 p1 <- plot_list[[1]] + theme(plot.title = element_text(size=13)) + theme(plot.background = element_rect(fill = "#91002d"))
-p1
-p <- plot_grid(p1)
+p <- ggdraw(p1) + draw_image("glycericacid.png", x=.982, y=0.92, hjust=1, vjust=1, width=.2, height=0.2)
+
 ```
 ```{r}
 for (i in c(3,6,8,9,13,23)){
@@ -67,14 +66,13 @@ for (i in c(3,6,8,9,13,23)){
 ```{r}
 big <- plot_grid(lplot_list[[3]], lplot_list[[6]], lplot_list[[8]], lplot_list[[9]], lplot_list[[13]], lplot_list[[23]])
 pbig <- plot_grid(p, big)
-pbig
+
 for (i in c(2,4,7,11,15,20,22,24,26,28,30,31)){
   lplot_list[[i]]<- lplot_list[[i]] + theme(plot.background = element_rect(fill = "#ca7479"))
 }
 significants <- plot_grid(lplot_list[[2]], lplot_list[[4]],lplot_list[[7]],lplot_list[[11]],lplot_list[[15]],lplot_list[[20]],lplot_list[[22]],lplot_list[[24]],lplot_list[[26]],lplot_list[[28]],lplot_list[[30]],lplot_list[[31]])
 library(grid)
 grid <- plot_grid(pbig,significants, ncol=1, nrow=2)
-grid
 ```
 ```{r}
 library(gridExtra)
@@ -87,7 +85,7 @@ dev.off()
 ```{r}
 m <- data[c(92,91,51,50,52,103,38,55,12,59,47,99,5,125,182,114,7,27,56,57,76,62,132,111,106,173,201,121,81),c(1:17)]
 rownames(m) <- 1:nrow(m)
-m
+
 ```
 ```{r}
 mp = list()
@@ -102,7 +100,7 @@ for (i in 1:29) {
         scale_fill_manual(values=c("#ffffff", "#f9cfcf")) +
         geom_point(show.legend = FALSE, size=1) +
         labs(title=m[i,1]) +
-        theme(plot.title = element_text(size=7)) +
+        theme(axis.text.x=element_text(color="white"), axis.text.y=element_text(color="white"), plot.title = element_text(size=7, color="white")) +
         theme(axis.title.x=element_blank(),
         axis.text.x=element_blank(), 
         axis.title.y=element_blank()) +
@@ -121,7 +119,7 @@ for (i in 1:29){
 ```
 ```{r}
 m3 <- mp[[3]] + theme(plot.title = element_text(size=13)) + theme(plot.background = element_rect(fill = "#91002d"))
-m_3 <- plot_grid(m3)
+m3l <- ggdraw(m3) + draw_image("biocyc_Lleucine.png", x=1.01, y=0.93, hjust=1, vjust=1, width=.25, height=0.25)
 ```
 ```{r}
 for (i in c(7,8,9,11,17,18)){
@@ -130,8 +128,8 @@ for (i in c(7,8,9,11,17,18)){
 ```
 ```{r}
 bigm <- plot_grid(lmp[[7]], lmp[[8]], lmp[[9]], lmp[[11]], lmp[[17]], lmp[[18]])
-mbigm <- plot_grid(m_3, bigm)
-mbigm
+mbigm <- plot_grid(m3l, bigm)
+
 for (i in c(1,4,5,10,13,19,20,21,22,24,28,29)){
   lmp[[i]]<- lmp[[i]] + theme(plot.background = element_rect(fill = "#ca7479"))
 }
