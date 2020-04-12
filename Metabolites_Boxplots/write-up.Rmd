@@ -1,0 +1,43 @@
+---
+title: "Significant Metabolites"
+author: "Hanna Choi"
+date: "4/9/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+> Plots of soil contain a mineral and organic layer which correlatively contain a unique composition of metabolites. In both layers, heating the soil caused a decrease in density for many metabolites. Of the mineral layer metabolites, the most impacted from changing the temperature by 5 degrees Celsius above the constant outside temperature was the frequency of two unknown metabolites and L-leucine. Of the organic layer metabolites, the most impacted was glyceric acid. 6 metabolites found in both the mineral and organic layer were significantly impacted in frequency in both layers and can be found in the top right section of the following two figures. 
+  
+  
+## Mineral Metabolites
+
+![](mm_plots.png)
+
+
+  **L-leucine, iso-leucine, and L-valine**
+
+  In the E. Coli K-12 strain, L-leucine, iso-leucine, and L-valine are found to be products of a 'superpathway' where these metabolites are catalyzed using acetolactate synthase (*ALS*), a ketol acid reductoisomerase, a dihydroxyacid dehydratase and a transaminase. The synthesis of L-leucine, iso-leucine, and L-valine results in the inhibition of ilvGMEDA inhibition which is the operon that codes for the enzymes responsible for these metabolites' production. In other words, the pathway for L-leucine, iso-leucine, and L-valine biosynthesis is a negative feedback loop.
+  
+  
+  
+  **GABA**
+  
+  4-aminobutyric acid, also known as GABA, is a non-protein amino acid formed in vivo of humans by a metabolic pathway called the "GABA shunt". GABA is found in high concentrations in many brain regions of humans due to its inhibitory function that directly affects personality and stress management. Its production from microorganisms, though, has increased in demand in the food industry as well as the pharmaceutical industry as it has hypotensive, tranquilizing, diuretic and antidiabetic effects and can inhibit cancer cell proliferation and improve memory and learning abilities.
+  
+  Major GABA producing microorganisms are lactic acid bacteria which are the bacteria that make food spoilage pathogens unable to grow and act as probiotics in the gastrointestinal tract. 
+
+  In plants and microorganisms, GABA is produced by the decarboxylation of glutamic acid which can be catalyzed by glutamate decarboxylase. GABA production is significantly affected by the **temperature**, pH, fermentation time, and media it is produced in. In other studies, the environment being anaerobic for some microorganisms (Rhizopus species) has been found to increase GABA production.
+  
+  One study found the following species to be useful microorganisms for GABA isolation: _Lb. plantarum (17 isolates), Leuconostocs (L.) mesenteroides (2 isolates), Weissella cibaria (1 isolates), Lb. paracasei (16 isolates), Lb. brevis (3 isolates), Lb. casei (5 isolates), L. pseudomesenteroides (2 isolates), Lb. lactis (2 isolates), Lb. delbrueckii subsp. bulgaricus (2 isolates), Lb. rhamnosus (2 isolates), S. thermophilus (6 isolates) and E. durans (1 isolate) (74)._ Other microorganisms include: _Lc. lactis (58, 76), Pediococcus acidilactici, P. pentosaceus, E. durans, E. faecalis, E. faecium and Leuconostocs (L.) (9)._
+  (Dhakal et al., 2012)
+  
+  Lb. brevis NCL912 produced GABA the most at a temperature of 35 degrees Celsius (Li et al., 2010) while Lb. plantarum DSM19463 produced GABA optimally at a range of 30 to 35 degree Celsius (Di Cagno et al., 2010). Lb. brevis GAD, Lb. brevis CGMCC 1306, Lc. lactis, S. salivarius subsp. thermophilus, and Lb. brevis GABA 100 produced GABA optimally at temperature of 30, 37, 33-34, 34, and 30 degrees Celsius respectively (Dhakal et al., 2012). Lb. paracasei NFRI 7415 was producing GABA optimally at 37 degrees Celsius and drastically declined in productivity at 43 degrees Celsius (Komatsuzaki et al., 2005).
+  
+  In general, the genera: Enterococcus, Lactobacillus, Lactococcus, Leuconostoc, Pediococcus and Streptococcus are significant for GABA production can all be potential research groups on the impact of temperature on GABA production in soil microorganisms.
+    
+  **glycine**
+  
+  
