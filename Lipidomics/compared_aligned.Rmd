@@ -1,0 +1,56 @@
+---
+title: "lipids"
+author: "Hanna Choi"
+date: "4/9/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{r}
+POS <- read.csv("Blanchard_Lipid_POS.csv", header=TRUE)
+NEG <- read.csv("Blanchard_Lipid_NEG.csv", header=TRUE)
+Unique <- read.csv("Blanchard_Lipid_Unique.csv", header=TRUE)
+### Cleaned names
+names(POS) <- gsub(x = names(POS), pattern = "_POS", replacement = "_")  
+names(NEG) <- gsub(x=names(POS), pattern="_NEG", replacement="_")
+### add Column with POS or NEG
+POS$charge <- c("POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS")
+NEG$charge <- c("NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG")
+colnames(NEG)
+combined <- merge(POS, NEG, by=c("row.identity", "Blanch_Nat_Lip_C_12_AB_M_17_", "Blanch_Nat_Lip_C_19_AB_O_26_", "Blanch_Nat_Lip_H_17_AB_O_22_", "Blanch_Nat_Lip_H_30_AB_M_11_", "Blanch_Nat_Lip_C_19_AB_M_16_", "Blanch_Nat_Lip_C_27_AB_O_21_", "Blanch_Nat_Lip_C_12_AB_O_25_", "Blanch_Nat_Lip_C_14_AB_M_27_", "Blanch_Nat_Lip_C_14_AB_O_09_", "Blanch_Nat_Lip_C_30_AB_M_14_", "Blanch_Nat_Lip_C_34_AB_O_10_", "Blanch_Nat_Lip_C_4_AB_M_08_",  "Blanch_Nat_Lip_C_4_AB_O_04_",  "Blanch_Nat_Lip_H_28_AB_M_03_", "Blanch_Nat_Lip_H_11_AB_M_13_", "Blanch_Nat_Lip_H_17_AB_M_18_", "Blanch_Nat_Lip_H_26_AB_M_12_", "Blanch_Nat_Lip_C_7_AB_M_07_",  "Blanch_Nat_Lip_H_11_AB_O_24_", "Blanch_Nat_Lip_H_2B_M_02_",   "Blanch_Nat_Lip_H_2_AB_M_23_",  "Blanch_Nat_Lip_H_32_AB_M_20_", "Blanch_Nat_Lip_H_2_AB_O_15_",  "Blanch_Nat_Lip_H_32_AB_O_19_", "Blanch_Nat_Lip_H_34_AB_M_01_", "Blanch_Nat_Lip_H_4_AB_O_06_",  "Blanch_Nat_Lip_H_4_AB_M_05_",  "charge"))
+combined <- rbind(POS, NEG)
+names(combined) <- gsub(x = names(POS), pattern = "Blanch_Nat_Lip_", replacement = "_")  
+rc <- combined[,c(3,4,8,11,13,15,21,7,17,18,19,20,23,24,25,28,30,5,9,10,12,14,16,6,22,26,27,29,31)]
+rownames(rc)
+```
+### Questions: what is mz, is retention the chromatograph?, why are there two compounds found in one value
+```{r}
+## means by type to eyeball variation
+rc$C_M<-data.frame(Means=rowMeans(rc[,c(4:9)]))
+rc$H_M<-data.frame(Means=rowMeans(rc[,c(10:19)]))
+rc$C_O<-data.frame(Means=rowMeans(rc[,c(20:25)]))
+rc$H_O<-data.frame(Means=rowMeans(rc[,c(26:30)]))
+```
+```{r CoQ10}
+library(tidyverse)
+wrc <- gather(rc, key= "type", value = frequency, "_C_12_AB_M_17_", "_C_19_AB_M_16_", "_C_14_AB_M_27_", "_C_30_AB_M_14_", "_C_4_AB_M_08_", "_C_7_AB_M_07_"  ,"_H_30_AB_M_11_"  ,"_H_28_AB_M_03_","_H_11_AB_M_13_", "_H_17_AB_M_18_"  ,   "_H_26_AB_M_12_"   ,  "_H_2B_M_02_"    ,    "_H_2_AB_M_23_", "_H_32_AB_M_20_"   ,  "_H_34_AB_M_01_"    , "_H_4_AB_M_05_"   ,   "_C_19_AB_O_26_"  , "_C_27_AB_O_21_"    , "_C_12_AB_O_25_"     ,"_C_14_AB_O_09_"   ,  "_C_34_AB_O_10_" , "_C_4_AB_O_04_", "_H_17_AB_O_22_",  "_H_11_AB_O_24_"    , "_H_2_AB_O_15_","_H_32_AB_O_19_", "_H_4_AB_O_06_")
+wrc$type <- gsub("_C_\\d+_AB_M_\\d+_","C_M", wrc$type)
+wrc$type <- gsub("_H_\\d+_AB_M_\\d+_","H_M", wrc$type)
+wrc$type <- gsub("_C_\\d+_AB_O_\\d+_","C_O", wrc$type)
+wrc$type <- gsub("_H_\\d+_AB_O_\\d+_","H_O", wrc$type)
+wrc$type <- gsub("_H_2B_M_\\d+_","H_M", wrc$type)
+m <- list()
+for (i in wrc[[row.identity]]){
+  p <- var.test(i[["C_M"]],i[["H_M"]])
+  m[[i]] <- p
+}
+```
+### data is wrangled to 'wrc' above
+```{r}
+  ### visually, the samples look like they have unequal variance
+var.test(CMCoQ10,HMCoQ10)
+```
+
+
