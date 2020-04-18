@@ -23,10 +23,10 @@ for (i in 1:31) {
   data_i_w <- data_i %>% gather("M_C_4_AB",	"M_C_7_AB",	"M_C_12_AB",	"M_C_14_AB",	"M_C_19_AB",	"M_C_30_AB",	"M_H_2_AB",	"M_H_2B",	"M_H_4_AB",	"M_H_11_AB",	"M_H_17_AB",	"M_H_26_AB",	"M_H_28_AB",	"M_H_30_AB",	"M_H_32_AB",	"M_H_34_AB",	"O_C_4_AB",	"O_C_12_AB",	"O_C_14_AB",	"O_C_19_AB",	"O_C_27_AB",	"O_C_34_AB",	"O_H_2_AB",	"O_H_4_AB",	"O_H_11_AB",	"O_H_17_AB",	"O_H_32_AB", key="type", value="frequencies")
   data_i_w$type <- c("Mineral Controlled", "Mineral Controlled", "Mineral Controlled", "Mineral Controlled", "Mineral Controlled", "Mineral Controlled", "Mineral Heated", "Mineral Heated", "Mineral Heated", "Mineral Heated", "Mineral Heated", "Mineral Heated", "Mineral Heated", "Mineral Heated", "Mineral Heated", "Mineral Heated", "Organic Controlled", "Organic Controlled", "Organic Controlled", "Organic Controlled", "Organic Controlled", "Organic Controlled", "Organic Heated", "Organic Heated", "Organic Heated", "Organic Heated", "Organic Heated")
  p = ggplot(data_i_w, aes(x=type, y=frequencies, fill=type, show.legend=FALSE)) +
-        geom_boxplot() +
-        scale_fill_manual(values=c("#B43757", "#830300","#B43757", "#830300")) +
-        scale_alpha(range=c(.1, .1, .2, 1.)) +
-        geom_point(show.legend = FALSE) +
+        geom_boxplot(aes(fill=type, alpha=type), width=0.5) +
+        scale_fill_manual(values=c("#E2A1A3","#E2A1A3", "#AF4551", "#91002D")) +
+        scale_alpha_discrete(range  = c(0.1, 1.0)) +
+        geom_point(show.legend = FALSE, size=1) +
         labs(title=new_data[i,1]) +
         theme(plot.title = element_text(size=7)) +
         theme(axis.title.x=element_blank(),
@@ -49,7 +49,9 @@ dev.off()
 p1 <- plot_list[[1]]  ### glyceric acid
 p1 + theme(plot.title = element_text(size=13))
 p2 <- plot_list[[2]]  ### D-glucagonic acid
+
 p3 <- plot_list[[3]]  ### L-glutamic acid ********
+
 p4 <- plot_list[[4]]  ### glycolic acid
 p6 <- plot_list[[6]]  ### beta-cyano-L-alanine *******
 p8 <- plot_list[[8]]  ### L-serine ******
@@ -57,8 +59,10 @@ p9 <- plot_list[[9]]  ### GABA 1 ROW REMOVED ******
 p11 <- plot_list[[11]] ### L-pyroglutamic acid
 p13 <- plot_list[[13]] ## fumaric acid 1 REMOVED ROW ******
 p15 <- plot_list[[15]] ### arbutin 8 ROWS REMOVED
+p15
 p20 <- plot_list[[20]] ### ethanolamine
 p22 <- plot_list[[22]] ### 1,3-dihydroxyacetone
+p22
 p23 <- plot_list[[23]] ### glycine ******
 p24 <- plot_list[[24]] ### L-glutamine
 p26 <- plot_list[[26]] ### D-ribose
@@ -102,6 +106,6 @@ grid_arrange_shared_legend <- function(..., ncol = length(list(...)), nrow = 1, 
 
 
 plot_all <- grid_arrange_shared_legend(p3,p6,p8,p9,p13,p23,p2,p4,p11,p15,p20,p22,p24,p26, p28, ncol = 4, nrow = 5)
-plot(plot_all, width=5, length=10)
+plot(plot_all, width=5, length=5)
 ```
 

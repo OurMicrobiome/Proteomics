@@ -19,9 +19,9 @@ knitr::opts_chunk$set(echo = TRUE)
 
   **L-leucine, iso-leucine, and L-valine**
 
-  In the E. Coli K-12 strain, L-leucine, iso-leucine, and L-valine are found to be products of a 'superpathway' where these metabolites are catalyzed using acetolactate synthase (*ALS*), a ketol acid reductoisomerase, a dihydroxyacid dehydratase and a transaminase. The synthesis of L-leucine, iso-leucine, and L-valine results in the inhibition of ilvGMEDA inhibition which is the operon that codes for the enzymes responsible for these metabolites' production. In other words, the pathway for L-leucine, iso-leucine, and L-valine biosynthesis is a negative feedback loop.
+  In the E. Coli K-12 strain, L-leucine, iso-leucine, and L-valine are found to be products of a 'superpathway' where these metabolites are catalyzed using acetolactate synthase (*ALS*), a ketol acid reductoisomerase, a dihydroxyacid dehydratase and a transaminase. The synthesis of L-leucine, iso-leucine, and L-valine results in the inhibition of ilvGMEDA inhibition which is the operon that codes for the enzymes responsible for these metabolites' production. In other words, the pathway for L-leucine, iso-leucine, and L-valine biosynthesis is a negative feedback loop...
   
-  
+  The uptake of Leucine into microorganisms increases when temperature increases (Rinnan et. al., 2007).
   
   **GABA**
   
@@ -40,4 +40,5 @@ knitr::opts_chunk$set(echo = TRUE)
     
   **glycine**
   
+  Glycine is an amino acid. Amino acids are typically used as nitrogen sources and as labile carbon substrates for soil microorganisms in soil (Joshua P. Schimel & Jennifer Bennett, 2004). Microorganisms are known to consume Nitrogen much more than plants (Andresen et al., 2009) for metabolic processes. Research has found glycine is a significant source of Nitrogen for microorganisms and plants (especially at depths of 0-5cm) and its uptake increases in both plants and microorganisms when temperatures increase (which has been tested using passive night-time warming). Thus, decreased levels of glycine in the heated samples versus the controlled samples of this dataset  is understandable as the same was found in the increased temperature experiments performed by Louise C. Anderson and others in soil at the site of the CLIMAITE experiment North West of Coppenhagen, Denmark (Andresen et al., 2009).
   
