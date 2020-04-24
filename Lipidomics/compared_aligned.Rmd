@@ -1,7 +1,7 @@
 ---
 title: "lipids"
 author: "Hanna Choi"
-date: "4/9/2020"
+date: "4/24/2020"
 output: html_document
 ---
 
@@ -25,9 +25,99 @@ names(combined) <- gsub(x = names(POS), pattern = "Blanch_Nat_Lip_", replacement
 rc <- combined[,c(3,4,8,11,13,15,21,7,17,18,19,20,23,24,25,28,30,5,9,10,12,14,16,6,22,26,27,29,31)]
 namess <- combined[,3]
 namesss <- as.data.frame(namess)
-rownames(rc)
-rc
 ```
+### heatmap
+```{r}
+library(ggplot2)
+library(tidyr)
+hrc <- gather(rc, key='plot', value=frequency, "_C_12_AB_M_17_", "_C_19_AB_M_16_", "_C_14_AB_M_27_", "_C_30_AB_M_14_", "_C_4_AB_M_08_", "_C_7_AB_M_07_"  ,"_H_30_AB_M_11_"  ,"_H_28_AB_M_03_","_H_11_AB_M_13_", "_H_17_AB_M_18_"  ,   "_H_26_AB_M_12_"   ,  "_H_2B_M_02_"    ,    "_H_2_AB_M_23_", "_H_32_AB_M_20_"   ,  "_H_34_AB_M_01_"    , "_H_4_AB_M_05_"   ,   "_C_19_AB_O_26_"  , "_C_27_AB_O_21_"    , "_C_12_AB_O_25_"     ,"_C_14_AB_O_09_"   ,  "_C_34_AB_O_10_" , "_C_4_AB_O_04_", "_H_17_AB_O_22_",  "_H_11_AB_O_24_"    , "_H_2_AB_O_15_","_H_32_AB_O_19_", "_H_4_AB_O_06_")
+### add type column of OH,OC,MH,MC by adding the plot column again and gsub out everything except the letters 
+hrc$type <- hrc$plot
+hrc$type <- gsub("_C_\\d+_AB_M_\\d+_","C", hrc$type)
+hrc$type <- gsub("_H_\\d+_AB_M_\\d+_","H", hrc$type)
+hrc$type <- gsub("_C_\\d+_AB_O_\\d+_","C", hrc$type)
+hrc$type <- gsub("_H_\\d+_AB_O_\\d+_","H", hrc$type)
+hrc$type <- gsub("_H_2B_M_\\d+_","H", hrc$type)
+hrc <- hrc[order(hrc$type),]
+hm <- ggplot(hrc, aes(x=plot,y=row.identity,fill=frequency)) + geom_tile() + theme(axis.text.x = element_text(angle = 90)) + facet_grid(~type, switch = "x", scales = "free_x", space = "free_x") +
+  theme(strip.placement = "outside",
+        plot.title = element_text(hjust = 0.5),
+        axis.title.y = element_blank(), # Remove y-axis title
+        strip.background = element_rect(fill = "#EEEEEE", color = "#FFFFFF")) + # Faint "Depth" boxes
+  ggtitle(label = "Lipid Abundance in Control v. Heated Plots")
+hm
+```
+
+### scale is not representative on the heatmap at all!
+```{r}
+head(summary(rc)) ### the ranges are terribly large
+library(caret) ###to normalize the data before making a heatmap
+preproc_rc <- preProcess(rc[,c(1,2:28)], method=c('center', 'scale'))
+norm_rc <- predict(preproc_rc, rc[,c(1,2:28)])
+```
+
+### heatmap with normalized data norm_rc 
+```{r}
+nhrc <- gather(norm_rc, key='plot', value=frequency, "_C_12_AB_M_17_", "_C_19_AB_M_16_", "_C_14_AB_M_27_", "_C_30_AB_M_14_", "_C_4_AB_M_08_", "_C_7_AB_M_07_"  ,"_H_30_AB_M_11_"  ,"_H_28_AB_M_03_","_H_11_AB_M_13_", "_H_17_AB_M_18_"  ,   "_H_26_AB_M_12_"   ,  "_H_2B_M_02_"    ,    "_H_2_AB_M_23_", "_H_32_AB_M_20_"   ,  "_H_34_AB_M_01_"    , "_H_4_AB_M_05_"   ,   "_C_19_AB_O_26_"  , "_C_27_AB_O_21_"    , "_C_12_AB_O_25_"     ,"_C_14_AB_O_09_"   ,  "_C_34_AB_O_10_" , "_C_4_AB_O_04_", "_H_17_AB_O_22_",  "_H_11_AB_O_24_"    , "_H_2_AB_O_15_","_H_32_AB_O_19_", "_H_4_AB_O_06_")
+### add type column of OH,OC,MH,MC by adding the plot column again and gsub out everything except the letters 
+nhrc$type <- nhrc$plot
+nhrc$type <- gsub("_C_\\d+_AB_M_\\d+_","C", nhrc$type)
+nhrc$type <- gsub("_H_\\d+_AB_M_\\d+_","H", nhrc$type)
+nhrc$type <- gsub("_C_\\d+_AB_O_\\d+_","C", nhrc$type)
+nhrc$type <- gsub("_H_\\d+_AB_O_\\d+_","H", nhrc$type)
+nhrc$type <- gsub("_H_2B_M_\\d+_","H", nhrc$type)
+nhrc <- nhrc[order(nhrc$type),]
+nhm <- ggplot(nhrc, aes(x=plot,y=row.identity,fill=frequency)) + geom_tile() + theme(axis.text.x = element_text(angle = 90)) + facet_grid(~type, switch = "x", scales = "free_x", space = "free_x") +
+  theme(strip.placement = "outside",
+        plot.title = element_text(hjust = 0.5),
+        axis.title.y = element_blank(), # Remove y-axis title
+        strip.background = element_rect(fill = "#EEEEEE", color = "#FFFFFF")) + # Faint "Depth" boxes
+  ggtitle(label = "Lipid Abundance in Control v. Heated Plots")
+plot(nhm) ### again not too successful in getting something compelling
+```
+
+### now we should see if a log transformation will help
+```{r}
+hrc <- gather(rc, key='plot', value=frequency, "_C_12_AB_M_17_", "_C_19_AB_M_16_", "_C_14_AB_M_27_", "_C_30_AB_M_14_", "_C_4_AB_M_08_", "_C_7_AB_M_07_"  ,"_H_30_AB_M_11_"  ,"_H_28_AB_M_03_","_H_11_AB_M_13_", "_H_17_AB_M_18_"  ,   "_H_26_AB_M_12_"   ,  "_H_2B_M_02_"    ,    "_H_2_AB_M_23_", "_H_32_AB_M_20_"   ,  "_H_34_AB_M_01_"    , "_H_4_AB_M_05_"   ,   "_C_19_AB_O_26_"  , "_C_27_AB_O_21_"    , "_C_12_AB_O_25_"     ,"_C_14_AB_O_09_"   ,  "_C_34_AB_O_10_" , "_C_4_AB_O_04_", "_H_17_AB_O_22_",  "_H_11_AB_O_24_"    , "_H_2_AB_O_15_","_H_32_AB_O_19_", "_H_4_AB_O_06_")
+### add type column of OH,OC,MH,MC by adding the plot column again and gsub out everything except the letters 
+hrc$type <- hrc$plot
+hrc$type <- gsub("_C_\\d+_AB_M_\\d+_","C", hrc$type)
+hrc$type <- gsub("_H_\\d+_AB_M_\\d+_","H", hrc$type)
+hrc$type <- gsub("_C_\\d+_AB_O_\\d+_","C", hrc$type)
+hrc$type <- gsub("_H_\\d+_AB_O_\\d+_","H", hrc$type)
+hrc$type <- gsub("_H_2B_M_\\d+_","H", hrc$type)
+hrc <- hrc[order(hrc$type),]
+hrc$l <- log(hrc$frequency)
+thm <- ggplot(hrc, aes(x=plot,y=row.identity,fill=l)) + geom_tile() + theme(axis.text.x = element_text(angle = 90)) + facet_grid(~type, switch = "x", scales = "free_x", space = "fixed") +
+  theme(strip.placement = "outside",
+        plot.title = element_text(hjust = 0.5),
+        axis.title.y = element_blank(), # Remove y-axis title
+        strip.background = element_rect(fill = "#EEEEEE", color = "#FFFFFF")) + # Faint "Depth" boxes
+  ggtitle(label = "Lipid Abundance in Control v. Heated Plots") +
+  scale_fill_gradient2(low="white", mid="gray",high="black", 
+                         midpoint=1, limits=range(nhrc$tr))
+plot(thm) ### using normalized data
+```
+
+### tangent transformation of normalized data
+```{r}
+nhrc$tr <- atanh(nhrc$frequency)
+summary(nhrc$tr)
+nthm <- ggplot(nhrc, aes(x=plot,y=row.identity,fill=tr)) + geom_tile() + theme(axis.text.x = element_text(angle = 90)) + facet_grid(~type, switch = "x", scales = "free_x", space = "fixed") +
+  theme(strip.placement = "outside",
+        plot.title = element_text(hjust = 0.5),
+        axis.title.y = element_blank(), # Remove y-axis title
+        strip.background = element_rect(fill = "#EEEEEE", color = "#FFFFFF")) + # Faint "Depth" boxes
+  ggtitle(label = "Lipid Abundance in Control v. Heated Plots") +
+  scale_fill_gradient2(low="navy", mid="orange",high="red", 
+                         midpoint=1, limits=range(nhrc$tr))
+nthm ### using normalized data
+```
+### so if non-normalized transformed data is 
+```{r}
+
+```
+
 ```{r}
 library(tidyverse)
 wrc <- gather(rc, key= "type", value = frequency, "_C_12_AB_M_17_", "_C_19_AB_M_16_", "_C_14_AB_M_27_", "_C_30_AB_M_14_", "_C_4_AB_M_08_", "_C_7_AB_M_07_"  ,"_H_30_AB_M_11_"  ,"_H_28_AB_M_03_","_H_11_AB_M_13_", "_H_17_AB_M_18_"  ,   "_H_26_AB_M_12_"   ,  "_H_2B_M_02_"    ,    "_H_2_AB_M_23_", "_H_32_AB_M_20_"   ,  "_H_34_AB_M_01_"    , "_H_4_AB_M_05_"   ,   "_C_19_AB_O_26_"  , "_C_27_AB_O_21_"    , "_C_12_AB_O_25_"     ,"_C_14_AB_O_09_"   ,  "_C_34_AB_O_10_" , "_C_4_AB_O_04_", "_H_17_AB_O_22_",  "_H_11_AB_O_24_"    , "_H_2_AB_O_15_","_H_32_AB_O_19_", "_H_4_AB_O_06_")
@@ -38,23 +128,10 @@ wrc$type <- gsub("_C_\\d+_AB_O_\\d+_","C_O", wrc$type)
 wrc$type <- gsub("_H_\\d+_AB_O_\\d+_","H_O", wrc$type)
 wrc$type <- gsub("_H_2B_M_\\d+_","H_M", wrc$type)
 wrc <- wrc %>% arrange(row.identity)
-wrc
 library(dplyr)
-wrc_Wide <- wrc %>%
- distinct(row.identity,keep_all=TRUE) %>%
- pivot_wider(names_from = wrc$type, values_from = frequency, values_fill = list(frequency = 0))
-wrc_Wide
-wrc_Wides <- spread(wrc,key=type,value=frequency)
 ```
 ```{r}
 wrc_list <- split(wrc, f=list(wrc$type,wrc$row.identity))
-wrc_list[[384]]
-```
-```{r example t-test p-value}
-i <- 1
-t.test(wrc_list[[i]][["frequency"]],wrc_list[[3]][["frequency"]], alternative="g")
-```
-```{r}
 foo <- 1:768
 nth_element <- function(vector, starting_position, n) { 
   vector[seq(starting_position, length(vector), n)] 
@@ -63,35 +140,36 @@ x_1_4<-nth_element(foo,1,4)
 x_2_5<-nth_element(foo,2,4)
 x<-append(x_1_4,x_2_5)
 rx<-x[order(x)]
-rx
 wrc_list[["C_M.CoQ10"]][["row.identity"]]
-names(wrc_list[1])
 ```
 
-
-```{r list of p-values}
+### P-values list
+```{r}
 mttest <- list()
 j <- 1
 i <- 1
 for (i in rx){
     mttest[[j]] <- list(names(wrc_list[c(i,i+2)]),
                                t.test(wrc_list[[i]][["frequency"]],wrc_list[[(i+2)]][["frequency"]],
-                                      alternative="g")$p.value)
+                                      alternative="g")$p.value, t.test(wrc_list[[i]][["frequency"]],wrc_list[[(i+2)]][["frequency"]],
+                                      alternative="g")$estimate)
+
     
     j <- j+1
 }
-mttest[1]
 d <- as.data.frame(matrix(unlist(mttest), ncol=length(unlist(mttest[1])), byrow = TRUE))
 d <- d %>%
   rename(Control = V1, Heated = V2, pvalues=V3)
-colnames(d)
 do <- d[order(d$pvalues),]
 row.names(do) <- NULL
+names(do)[4] <- "mean of Heated"
+do$`mean of Heated` <- as.numeric(do$`mean of Heated`)
+names(do)[5] <- "mean of Control"
+do$`mean of Control` <- as.numeric(do$`mean of Control`)
+do$direction <- (do$`mean of Heated` - do$`mean of Control`)
 dop <- do[c(1:53),] 
 library(DT)
-colnames(dop)
-colnames(dop)
-Organic <- dop[c(1,6,7,13,14,15,16,18,22,25,29,31,35,36,37,41,44,45,46,47,49),]
+Organic <- dop[c(1,6,7,13,14,15,18,22,25,29,31,35,36,37,41,44,45,46,47,49),]
 Mineral <- dop[c(2,3,4,5,8,9,10,11,12,16,17,19,20,21,23,24,26,27,28,30,32,33,34,38,39,40,42,43,48,50,51,52,53),]
 ```
 ```{r}
