@@ -142,6 +142,22 @@ png("mm_plots.png")
 plot(Significant_Mineral_Metabolites)
 dev.off()
 ```
+### heatmap of all the metabolites
+```{r}
+summary(data)
+normalize <- function(x) {
+return ((x - min(x)) / (max(x) - min(x)))
+}
+wrangled_data <- gather(data,key="sample_bin",value="frequency", -Metabolite)
+wrangled_data$logged <- log(wrangled_data$frequency)
+wrangled_data$normalized <- normalize(wrangled_data$frequency)
+wrangled_data$type <- wrangled_data$sample_bin
+wrangled_data$type <- gsub("M_C_\\d+_AB", "M_C", wrangled_data$type)
+wrangled_data$type <- gsub("M_H_\\d+_AB", "M_H", wrangled_data$type)
+wrangled_data$type <- gsub("O_C_\\d+_AB", "O_C", wrangled_data$type)
+wrangled_data$type <- gsub("O_H_\\d+_AB", "O_H", wrangled_data$type)
+hmap <- ggplot(wrangled_data, aes(x=sample_bin,y=Metabolite,fill=normalized)) + geom_tile() + facet_grid(~type, switch = "x", scales = "free_x", space = "fixed")
+hmap
 
-
+```
 
