@@ -14,7 +14,8 @@ knitr::opts_chunk$set(echo = TRUE)
   
 ## Mineral Metabolites
 
-![](mm_plots.png)
+![](mm_plots.png) 
+![](om_plots.png)
 
 
   **L-leucine, iso-leucine, and L-valine**
@@ -41,4 +42,27 @@ knitr::opts_chunk$set(echo = TRUE)
   **glycine**
   
   Glycine is an amino acid. Amino acids are typically used as nitrogen sources and as labile carbon substrates for soil microorganisms in soil (Joshua P. Schimel & Jennifer Bennett, 2004). Microorganisms are known to consume Nitrogen much more than plants (Andresen et al., 2009) for metabolic processes. Research has found glycine is a significant source of Nitrogen for microorganisms and plants (especially at depths of 0-5cm) and its uptake increases in both plants and microorganisms when temperatures increase (which has been tested using passive night-time warming). Thus, decreased levels of glycine in the heated samples versus the controlled samples of this dataset  is understandable as the same was found in the increased temperature experiments performed by Louise C. Anderson and others in soil at the site of the CLIMAITE experiment North West of Coppenhagen, Denmark (Andresen et al., 2009).
+  
+  
+  **beta-cyano-L-alanine**
+  
+  -	Derivative of cyanide so detoxification mechanism
+  -	Can be hydrolyzed to asparagine
+  - Certain heat shock proteins known to interact with asparagine
+  -	Little literature about heat shock response, but lots concerning detoxification mechanism
+
+
+    [https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2230570/]
+
+    [https://www.ncbi.nlm.nih.gov/pubmed/16786295]
+
+  **fumaric acid**
+  
+  -	Anti-inflammatory in humans and stress response indicator in plants
+  -	Known to play a role in response systems for oxidative stress
+  -	Is produced from maleic acid more efficiently at higher temperatures
+
+
+
+  Return to Proteomics [Homepage](https://ourmicrobiome.github.io/Proteomics/)
   
