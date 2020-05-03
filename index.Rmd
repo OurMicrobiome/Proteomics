@@ -34,10 +34,14 @@ knitr::opts_chunk$set(echo = TRUE)
       
 ##### Lipidomics
 
-  * significant lipids where p-value < 0.05:
+   * significant lipids where p-value < 0.05:
   
- [Mineral](Lipidomics/Mineral_Lipids.csv)
+  [Mineral](Lipidomics/Mineral_Lipids.csv)
   
- [Organic](Lipidomics/Organic_Lipids.csv)
+  [Organic](Lipidomics/Organic_Lipids.csv)
   
-  * 
+   * heatmap that isn't really convincing is found in my code below:
+  
+  [Code also includes stats (pvalue, etc.)](Lipidomics/compared_aligned.html)
+  
+  
