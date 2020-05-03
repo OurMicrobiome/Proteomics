@@ -1,7 +1,7 @@
 ---
 title: "lipids"
 author: "Hanna Choi"
-date: "4/24/2020"
+date: "5/3/2020"
 output: html_document
 ---
 
@@ -66,56 +66,36 @@ nhrc$type <- gsub("_H_\\d+_AB_M_\\d+_","H", nhrc$type)
 nhrc$type <- gsub("_C_\\d+_AB_O_\\d+_","C", nhrc$type)
 nhrc$type <- gsub("_H_\\d+_AB_O_\\d+_","H", nhrc$type)
 nhrc$type <- gsub("_H_2B_M_\\d+_","H", nhrc$type)
-nhrc <- nhrc[order(nhrc$type),]
-nhm <- ggplot(nhrc, aes(x=plot,y=row.identity,fill=frequency)) + geom_tile() + theme(axis.text.x = element_text(angle = 90)) + facet_grid(~type, switch = "x", scales = "free_x", space = "free_x") +
-  theme(strip.placement = "outside",
-        plot.title = element_text(hjust = 0.5),
-        axis.title.y = element_blank(), # Remove y-axis title
-        strip.background = element_rect(fill = "#EEEEEE", color = "#FFFFFF")) + # Faint "Depth" boxes
+nhrc$plot <- gsub("_C_", "", nhrc$plot)
+nhrc$plot <- gsub("_H_","",nhrc$plot)
+
+nhrc$layer <- nhrc$plot
+nhrc$layer <- gsub("\\d+_AB_M_\\d+_", "Min", nhrc$layer)
+nhrc$layer <- gsub("\\d+B_M_\\d+_", "Min", nhrc$layer)
+nhrc$layer <- gsub("\\d+_AB_O_\\d+_", "Org", nhrc$layer)
+
+nhrc$lipid <- nhrc$row.identity
+nhrc$lipid <- gsub("\\s*\\([^\\)]+\\)","", nhrc$lipid)
+nhrc$lipid <- gsub("\\d+", "", nhrc$lipid)
+nhrc$category <- nhrc$lipid
+nhrc$category <- gsub("CoQ", "Prenol", nhrc$category)
+nhrc$category <- gsub("HexCer|Cer", "Sphingolipid", nhrc$category)
+nhrc$category <- gsub("PC|PE|PG|PI", "Glycerophospholipid", nhrc$category)
+nhrc$category <- gsub("DG|TG|DGDG|DGTSA", "Glycerolipid", nhrc$category)
+nhrc$category <- gsub("Glycerolipid;Glycerolipid|Glycerolipid_[AB]", "Glycerolipid", nhrc$category)
+nhrc$category <- gsub("_[AB]", "", nhrc$category)
+nhrc$category <- gsub("Glycerophospholipid;Glycerophospholipid", "Glycerophospholipid", nhrc$category)
+nhrc <- nhrc[order(nhrc$category),]
+```
+
+```{r}
+library(DT)
+datatable(nhrc)
+nhm <- ggplot(nhrc, aes(x=plot,y=lipid,fill=frequency)) + geom_tile() + theme(axis.text.x = element_text(angle = 90)) + facet_grid(~type, switch = "x", scales = "free_x", space = "free_x") +
+    scale_fill_gradient2(low="navy", mid="orange",high="red", 
+                         midpoint=1, limits=range(nhrc$frequency)) +
   ggtitle(label = "Lipid Abundance in Control v. Heated Plots")
 plot(nhm) ### again not too successful in getting something compelling
-```
-
-### now we should see if a log transformation will help
-```{r}
-hrc <- gather(rc, key='plot', value=frequency, "_C_12_AB_M_17_", "_C_19_AB_M_16_", "_C_14_AB_M_27_", "_C_30_AB_M_14_", "_C_4_AB_M_08_", "_C_7_AB_M_07_"  ,"_H_30_AB_M_11_"  ,"_H_28_AB_M_03_","_H_11_AB_M_13_", "_H_17_AB_M_18_"  ,   "_H_26_AB_M_12_"   ,  "_H_2B_M_02_"    ,    "_H_2_AB_M_23_", "_H_32_AB_M_20_"   ,  "_H_34_AB_M_01_"    , "_H_4_AB_M_05_"   ,   "_C_19_AB_O_26_"  , "_C_27_AB_O_21_"    , "_C_12_AB_O_25_"     ,"_C_14_AB_O_09_"   ,  "_C_34_AB_O_10_" , "_C_4_AB_O_04_", "_H_17_AB_O_22_",  "_H_11_AB_O_24_"    , "_H_2_AB_O_15_","_H_32_AB_O_19_", "_H_4_AB_O_06_")
-### add type column of OH,OC,MH,MC by adding the plot column again and gsub out everything except the letters 
-hrc$type <- hrc$plot
-hrc$type <- gsub("_C_\\d+_AB_M_\\d+_","C", hrc$type)
-hrc$type <- gsub("_H_\\d+_AB_M_\\d+_","H", hrc$type)
-hrc$type <- gsub("_C_\\d+_AB_O_\\d+_","C", hrc$type)
-hrc$type <- gsub("_H_\\d+_AB_O_\\d+_","H", hrc$type)
-hrc$type <- gsub("_H_2B_M_\\d+_","H", hrc$type)
-hrc <- hrc[order(hrc$type),]
-hrc$l <- log(hrc$frequency)
-thm <- ggplot(hrc, aes(x=plot,y=row.identity,fill=l)) + geom_tile() + theme(axis.text.x = element_text(angle = 90)) + facet_grid(~type, switch = "x", scales = "free_x", space = "fixed") +
-  theme(strip.placement = "outside",
-        plot.title = element_text(hjust = 0.5),
-        axis.title.y = element_blank(), # Remove y-axis title
-        strip.background = element_rect(fill = "#EEEEEE", color = "#FFFFFF")) + # Faint "Depth" boxes
-  ggtitle(label = "Lipid Abundance in Control v. Heated Plots") +
-  scale_fill_gradient2(low="white", mid="gray",high="black", 
-                         midpoint=1, limits=range(nhrc$tr))
-plot(thm) ### using normalized data
-```
-
-### tangent transformation of normalized data
-```{r}
-nhrc$tr <- atanh(nhrc$frequency)
-summary(nhrc$tr)
-nthm <- ggplot(nhrc, aes(x=plot,y=row.identity,fill=tr)) + geom_tile() + theme(axis.text.x = element_text(angle = 90)) + facet_grid(~type, switch = "x", scales = "free_x", space = "fixed") +
-  theme(strip.placement = "outside",
-        plot.title = element_text(hjust = 0.5),
-        axis.title.y = element_blank(), # Remove y-axis title
-        strip.background = element_rect(fill = "#EEEEEE", color = "#FFFFFF")) + # Faint "Depth" boxes
-  ggtitle(label = "Lipid Abundance in Control v. Heated Plots") +
-  scale_fill_gradient2(low="navy", mid="orange",high="red", 
-                         midpoint=1, limits=range(nhrc$tr))
-nthm ### using normalized data
-```
-### so if non-normalized transformed data is 
-```{r}
-
 ```
 
 ```{r}
@@ -160,19 +140,22 @@ for (i in rx){
 d <- as.data.frame(matrix(unlist(mttest), ncol=length(unlist(mttest[1])), byrow = TRUE))
 d <- d %>%
   rename(Control = V1, Heated = V2, pvalues=V3)
-do <- d[order(d$pvalues),]
-row.names(do) <- NULL
-names(do)[4] <- "mean of Heated"
-do$`mean of Heated` <- as.numeric(do$`mean of Heated`)
-names(do)[5] <- "mean of Control"
-do$`mean of Control` <- as.numeric(do$`mean of Control`)
-do$direction <- (do$`mean of Heated` - do$`mean of Control`)
+do <- d %>%
+   mutate(pvalues = as.numeric(as.character(pvalues)),
+          V4 = as.numeric(as.character(V4)),
+          V5 = as.numeric(as.character(V5))) %>%
+   mutate(Diff = V4 - V5)
+```
+```{r}
+library(DT)
+datatable(do, options = list(), class = "display")
+```
+
+```{r}
 dop <- do[c(1:53),] 
 library(DT)
 Organic <- dop[c(1,6,7,13,14,15,18,22,25,29,31,35,36,37,41,44,45,46,47,49),]
 Mineral <- dop[c(2,3,4,5,8,9,10,11,12,16,17,19,20,21,23,24,26,27,28,30,32,33,34,38,39,40,42,43,48,50,51,52,53),]
-```
-```{r}
 write.csv(Organic, "Organic_Lipids.csv",row.names = TRUE)
 write.csv(Mineral, "Mineral_Lipids.csv", row.names = TRUE)
 ```
