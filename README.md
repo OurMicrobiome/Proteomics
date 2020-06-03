@@ -1,2 +1,2 @@
 # Proteomics
-### https://ourmicrobiome.github.io/Proteomics/
+### https://ourmicrobiome.github.io/Soil-omics/
