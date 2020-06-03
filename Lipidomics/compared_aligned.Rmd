@@ -20,7 +20,7 @@ Saved/Created files of all these dataframes and boxplots are:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
-```{r}
+```{r uploading data}
 POS <- read.csv("Blanchard_Lipid_POS.csv", header=TRUE)
 NEG <- read.csv("Blanchard_Lipid_NEG.csv", header=TRUE)
 ### Cleaned names
@@ -61,7 +61,7 @@ library(DT)
 datatable(splitn[[1]]) # change the 1 to a number 1:52
 ```
 
-```{r T-test to get p-values where the two samples are H and C for a subset of the array "arrayn"}
+```{r T-test to get p-values where the two samples are H and C}
 pvalues <- as.data.frame(names(splitn)[1:13]) 
 pvalues$min <- NA
 pvalues$org <- NA
@@ -91,19 +91,15 @@ Min <- rbind(splitn[[i]], splitn[[a]])
     p1 <- eval(substitute(
         ggplot(data=Min,aes(x=plot, y=stdized, group=plot))+ 
           geom_boxplot(aes(fill=plot)) + ggtitle(pvalues[i,1],"Mineral")))
-    print(i)
-    print(p1)
     Minplotlist[[i]] <- p1  # add each plot into plot list
 Org <- rbind(splitn[[b]], splitn[[c]])
     p2 <- eval(substitute(
         ggplot(data=Org,aes(x=plot, y=stdized, group=plot))+ 
           geom_boxplot(aes(fill=plot)) + ggtitle(pvalues[i,1],"Mineral")))
-    print(i)
-    print(p2)
     Orgplotlist[[i]] <- p2  # add each plot into plot list
 }
 ```
-```{r}
+```{r pdf for all boxplots}
 GG_save_pdf = function(list, filename) {
   #start pdf
   pdf(filename)
@@ -121,9 +117,7 @@ GG_save_pdf = function(list, filename) {
 GG_save_pdf(Minplotlist, "MineralLipids_Boxplots.pdf")
 GG_save_pdf(Orgplotlist, "OrganicLipids_Boxplots.pdf")
 ```
-```{r}
 
-```
 
 
 
