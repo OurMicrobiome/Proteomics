@@ -1,7 +1,7 @@
 ---
 title: "Prote-Home Page"
 author: "Hanna Choi"
-date: "3/24/2020"
+date: "6/3/2020"
 output: html_document
 ---
 
@@ -34,16 +34,23 @@ knitr::opts_chunk$set(echo = TRUE)
       
 ##### Lipidomics
 
-   * CSV Datasets of significant lipids where p-value < 0.05:
+   * CSV Datasets of significant lipids where p-value < 0.05 from attempt #1:
   
   [Mineral](Lipidomics/Mineral_Lipids.csv)
   
   [Organic](Lipidomics/Organic_Lipids.csv)
   
-   * Boxplots will be made of each Lipid Group. The unfinished code that I'm working on is below:
+  * xlsx of dataset of p-values from attempt #2 and current code:
   
-  [Boxplots unfinished; Heatmap deleted because it was incorrect](Lipidomics/compared_aligned.html)
+  [all p-values](Lipidomics/p-values_of_Lipids.csv)
   
-  * p-value code is not finished and cannot work
+   * Boxplots of each Lipid Group:
   
+  [Mineral](Lipidomics/MineralLipids_Boxplots.pdf)
+  
+  [Organic](Lipidomics/OrganicLipids_Boxplots.pdf)
+  
+  * All the code for Lipidomics includes p-value calculations and boxplot creation:
+  
+  [HTML Code](Lipidmocs/compared_aligned.html)
   
