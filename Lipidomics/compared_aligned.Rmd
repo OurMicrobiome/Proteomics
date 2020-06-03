@@ -1,10 +1,22 @@
 ---
 title: "lipids plotted"
 author: "Hanna Choi"
-date: "5/3/2020"
+date: "6/2/2020"
 output: html_document
 ---
 
+In this code, splitn is the list of dataframes for the four groups: Mineral Layer Control, Mineral Layer Heater, Organic Layer Control, and Organic Layer Heated. Each group was normalized and then compared. The p-values were less than 0.05 for 7 of the comparisons and can be found in the dataframe pvalues. 
+
+The Mineral Lipids were plotted using ggplot (boxplot) and can be found in the list of ggplots Minplotlist. The same goes for the Organic Layer lipids in the list Orgplotlist.
+
+Saved/Created files of all these dataframes and boxplots are:
+  * [Lipidomics/MineralLipids_Boxplots.pdf]
+  
+  * [Lipidomics/OrganicLipids_Boxplots.pdf]
+  
+  * [Lipidomics/p-values_of_Lipids.csv]
+  
+  * [Lipidomics/datasets_lipids_in_separate_groups.csv]
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
@@ -30,35 +42,88 @@ n$lipid <- n$row.identity
 n$lipid <- gsub("\\(.*","",n$lipid)
 n$soil_type <- gsub("02", "M", n$soil_type)
 ```
-```{r}
-splitn <- split(n, n$lipid)
+
+```{r Subsetting by lipid type and soil type}
+splitn <- split(n, list(n$lipid, n$soil_type, n$plot))
 # https://stackoverflow.com/questions/34174799/r-get-subset-from-data-frame-filtering-by-year-date-value
+splitn[[40]]
 ```
-```{r}
+```{r Standardizing}
 library(caret)
 # https://machinelearningmastery.com/pre-process-your-dataset-in-r/
-for (i in 1:13){
+for (i in 1:52){
   r <- splitn[[i]]
   preproc_i <- preProcess(r, method=c("center", "scale"))
   rx <- predict(preproc_i, r)
   splitn[[i]]$stdized <- rx$frequency
 }
+library(DT)
+datatable(splitn[[1]]) # change the 1 to a number 1:52
 ```
 
-### heatmap
-```{r}
-plotlist <- list()
-library(ggplot2)
+```{r T-test to get p-values where the two samples are H and C for a subset of the array "arrayn"}
+pvalues <- as.data.frame(names(splitn)[1:13]) 
+pvalues$min <- NA
+pvalues$org <- NA
 for (i in 1:13){
-  plotlist[[i]] <- ggplot(splitn[[i]], aes(x=plot, y=stdized, group=plot)) + geom_boxplot(aes(fill=plot)) + ggtitle(splitn[[i]][1,8])
+  a = i+26
+  b = i+13
+  c = i+39
+  pvalues[i,2] <- t.test(splitn[[i]]$frequency, splitn[[a]]$frequency)$p.value
+  pvalues[i,3] <- t.test(splitn[[b]]$frequency, splitn[[c]]$frequency)$p.value
+}
+#cleaning up column names
+library(tidyverse)
+pvalues <- pvalues %>%
+  rename(lipid = "names(splitn)[1:13]")
+pvalues$lipid <- gsub(".M.C", "", pvalues$lipid)
+write.csv(pvalues, "p-values_of_Lipids.csv")
+```
+```{r ggplots of Control v Heated using splitn}
+Minplotlist <- list()
+Orgplotlist <- list()
+# boxplot by rbinding the Min's and Org's
+for (i in 1:13){
+  a = i + 26
+  b = i + 13
+  c = i +39
+Min <- rbind(splitn[[i]], splitn[[a]])
+    p1 <- eval(substitute(
+        ggplot(data=Min,aes(x=plot, y=stdized, group=plot))+ 
+          geom_boxplot(aes(fill=plot)) + ggtitle(pvalues[i,1],"Mineral")))
+    print(i)
+    print(p1)
+    Minplotlist[[i]] <- p1  # add each plot into plot list
+Org <- rbind(splitn[[b]], splitn[[c]])
+    p2 <- eval(substitute(
+        ggplot(data=Org,aes(x=plot, y=stdized, group=plot))+ 
+          geom_boxplot(aes(fill=plot)) + ggtitle(pvalues[i,1],"Mineral")))
+    print(i)
+    print(p2)
+    Orgplotlist[[i]] <- p2  # add each plot into plot list
 }
 ```
-### Figure 
-```{r fig.height=9}
-##### I'm not done yet
-library(ggpubr)
-figure <- ggarrange(plotlist[[1]], plotlist[[2]], plotlist[[3]], ncol=3)
-figure
+```{r}
+GG_save_pdf = function(list, filename) {
+  #start pdf
+  pdf(filename)
+
+  #loop
+  for (p in list) {
+    print(p)
+  }
+
+  #end pdf
+  dev.off()
+
+  invisible(NULL)
+}
+GG_save_pdf(Minplotlist, "MineralLipids_Boxplots.pdf")
+GG_save_pdf(Orgplotlist, "OrganicLipids_Boxplots.pdf")
 ```
+```{r}
+
+```
+
 
 
