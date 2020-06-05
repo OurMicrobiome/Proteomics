@@ -3,9 +3,10 @@ title: "lipids plotted"
 author: "Hanna Choi"
 date: "6/2/2020"
 output: html_document
+runtime: shiny
 ---
 
-In this code, splitn is the list of dataframes for the four groups: Mineral Layer Control, Mineral Layer Heater, Organic Layer Control, and Organic Layer Heated. Each group was normalized and then compared. The p-values were less than 0.05 for 7 of the comparisons and can be found in the dataframe pvalues. 
+In this code, splitn is the list of dataframes for the four groups: Mineral Layer Control, Mineral Layer Heater, Organic Layer Control, and Organic Layer Heated. Each lipid group in the four condition groups was normalized and then compared. The p-values were less than 0.05 for 7 of the comparisons and can be found in the dataframe pvalues. 
 
 The Mineral Lipids were plotted using ggplot (boxplot) and can be found in the list of ggplots Minplotlist. The same goes for the Organic Layer lipids in the list Orgplotlist.
 
@@ -16,9 +17,9 @@ Saved/Created files of all these dataframes and boxplots are:
   
   * [Lipidomics/p-values_of_Lipids.csv]
   
-  * [Lipidomics/datasets_lipids_in_separate_groups.csv]
+  * [Lipidomics/data_with_standardizing.csv]
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, fig.show= 'hold', out.width=.5)
 ```
 ```{r uploading data}
 POS <- read.csv("Blanchard_Lipid_POS.csv", header=TRUE)
@@ -57,8 +58,18 @@ for (i in 1:52){
   rx <- predict(preproc_i, r)
   splitn[[i]]$stdized <- rx$frequency
 }
-library(DT)
-datatable(splitn[[1]]) # change the 1 to a number 1:52
+```
+```{r}
+# new n list with the stdized
+library(dplyr)
+nn <- bind_rows(splitn)
+write.csv(nn, "data_with_standardizing.csv")
+```
+```{r testing something out; this code is not correct}
+# testing is stdizing n makes the numbers of nn
+  preproc_i <- preProcess(n, method=c("center", "scale"))
+  testn <- predict(preproc_i, n)
+
 ```
 
 ```{r T-test to get p-values where the two samples are H and C}
@@ -98,6 +109,17 @@ Org <- rbind(splitn[[b]], splitn[[c]])
           geom_boxplot(aes(fill=plot)) + ggtitle(pvalues[i,1],"Mineral")))
     Orgplotlist[[i]] <- p2  # add each plot into plot list
 }
+```
+### selectInput is to make the input. renderPlot makes the graphic of the plot.
+```{r Minplotlist, echo=FALSE}
+selectInput(
+  'breaks', label = 'Select a plot by index number',
+  choices = c(1:13), selected = 1
+)
+
+renderPlot({
+  plot(Minplotlist[[as.numeric(input$breaks)]])
+})
 ```
 ```{r pdf for all boxplots}
 GG_save_pdf = function(list, filename) {
