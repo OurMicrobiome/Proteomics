@@ -2,11 +2,15 @@
 title: "lipids plotted"
 author: "Hanna Choi"
 date: "6/2/2020"
-output: html_document
-runtime: shiny
----
+output:
+  flexdashboard::flex_dashboard:
+    orientation: columns
 
-In this code, splitn is the list of dataframes for the four groups: Mineral Layer Control, Mineral Layer Heater, Organic Layer Control, and Organic Layer Heated. Each lipid group in the four condition groups was normalized and then compared. The p-values were less than 0.05 for 7 of the comparisons and can be found in the dataframe pvalues. 
+---
+Intro
+=====================================  
+
+In this code, splitnn is the list of dataframes for the four groups: Mineral Layer Control, Mineral Layer Heater, Organic Layer Control, and Organic Layer Heated. Each lipid group in the four condition groups was normalized and then compared. The p-values were less than 0.05 for 7 of the comparisons and can be found in the dataframe pvalues. 
 
 The Mineral Lipids were plotted using ggplot (boxplot) and can be found in the list of ggplots Minplotlist. The same goes for the Organic Layer lipids in the list Orgplotlist.
 
@@ -19,22 +23,30 @@ Saved/Created files of all these dataframes and boxplots are:
   
   * [Lipidomics/data_with_standardizing.csv]
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, fig.show= 'hold', out.width=.5)
+knitr::opts_chunk$set(echo = TRUE)
+
+library(flexdashboard)
+library(crosstalk)
+library(plotly)
+library(caret)
+library(tidyverse)
 ```
-```{r uploading data}
+
+Row
+--------------------------------------------------
+
+```{r uploading data, include=FALSE}
 POS <- read.csv("Blanchard_Lipid_POS.csv", header=TRUE)
 NEG <- read.csv("Blanchard_Lipid_NEG.csv", header=TRUE)
 ### Cleaned names
 names(POS) <- gsub(x = names(POS), pattern = "_POS", replacement = "_")  
 names(NEG) <- gsub(x=names(POS), pattern="_NEG", replacement="_")
 ### add Column with POS or NEG
-POS$charge <- c("POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS","POS")
-NEG$charge <- c("NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG","NEG")
-combined <- merge(POS, NEG, by=c("row.identity", "Blanch_Nat_Lip_C_12_AB_M_17_", "Blanch_Nat_Lip_C_19_AB_O_26_", "Blanch_Nat_Lip_H_17_AB_O_22_", "Blanch_Nat_Lip_H_30_AB_M_11_", "Blanch_Nat_Lip_C_19_AB_M_16_", "Blanch_Nat_Lip_C_27_AB_O_21_", "Blanch_Nat_Lip_C_12_AB_O_25_", "Blanch_Nat_Lip_C_14_AB_M_27_", "Blanch_Nat_Lip_C_14_AB_O_09_", "Blanch_Nat_Lip_C_30_AB_M_14_", "Blanch_Nat_Lip_C_34_AB_O_10_", "Blanch_Nat_Lip_C_4_AB_M_08_",  "Blanch_Nat_Lip_C_4_AB_O_04_",  "Blanch_Nat_Lip_H_28_AB_M_03_", "Blanch_Nat_Lip_H_11_AB_M_13_", "Blanch_Nat_Lip_H_17_AB_M_18_", "Blanch_Nat_Lip_H_26_AB_M_12_", "Blanch_Nat_Lip_C_7_AB_M_07_",  "Blanch_Nat_Lip_H_11_AB_O_24_", "Blanch_Nat_Lip_H_2B_M_02_",   "Blanch_Nat_Lip_H_2_AB_M_23_",  "Blanch_Nat_Lip_H_32_AB_M_20_", "Blanch_Nat_Lip_H_2_AB_O_15_",  "Blanch_Nat_Lip_H_32_AB_O_19_", "Blanch_Nat_Lip_H_34_AB_M_01_", "Blanch_Nat_Lip_H_4_AB_O_06_",  "Blanch_Nat_Lip_H_4_AB_M_05_",  "charge"))
+POS$charge <- c(rep("POS",117))
+NEG$charge <- c(rep("NEG", 75))
 combined <- rbind(POS, NEG)
 names(combined) <- gsub(x = names(POS), pattern = "Blanch_Nat_Lip_", replacement = "")  
 rc <- combined[,c(-1,-2)]
-library(tidyr)
 n <- gather(rc, key='plot', value=frequency, "C_12_AB_M_17_", "C_19_AB_M_16_", "C_14_AB_M_27_", "C_30_AB_M_14_", "C_4_AB_M_08_", "C_7_AB_M_07_"  ,"H_30_AB_M_11_"  ,"H_28_AB_M_03_","H_11_AB_M_13_", "H_17_AB_M_18_"  ,   "H_26_AB_M_12_"   ,  "H_2B_M_02_"    ,  "H_2_AB_M_23_", "H_32_AB_M_20_"   ,  "H_34_AB_M_01_"    , "H_4_AB_M_05_"   ,   "C_19_AB_O_26_"  , "C_27_AB_O_21_"    , "C_12_AB_O_25_"     ,"C_14_AB_O_09_"   ,  "C_34_AB_O_10_" , "C_4_AB_O_04_", "H_17_AB_O_22_",  "H_11_AB_O_24_"    , "H_2_AB_O_15_","H_32_AB_O_19_", "H_4_AB_O_06_")
 n <- n %>%
   separate(plot, c("plot", "plot_number", "AB", "soil_type", "type_number"), "_")
@@ -44,84 +56,70 @@ n$lipid <- gsub("\\(.*","",n$lipid)
 n$soil_type <- gsub("02", "M", n$soil_type)
 ```
 
+### Subsetting and saving
+
 ```{r Subsetting by lipid type and soil type}
-splitn <- split(n, list(n$lipid, n$soil_type, n$plot))
+splitn <- split(n,n$row.identity)
+
+splitnn <- split(n, list(n$row.identity, n$soil_type))
 # https://stackoverflow.com/questions/34174799/r-get-subset-from-data-frame-filtering-by-year-date-value
-splitn[[40]]
 ```
+
+### Standardizing and p-values
+
 ```{r Standardizing}
-library(caret)
 # https://machinelearningmastery.com/pre-process-your-dataset-in-r/
-for (i in 1:52){
-  r <- splitn[[i]]
-  preproc_i <- preProcess(r, method=c("center", "scale"))
-  rx <- predict(preproc_i, r)
-  splitn[[i]]$stdized <- rx$frequency
+
+# For Mineral p-values and standardization
+for (i in 1:192){
+  for (j in 1:as.numeric(nrow(splitnn[[i]]))){
+    splitnn[[i]][j,9] <- (splitnn[[i]][j,7] - mean(splitnn[[i]]$frequency)) / sd(splitnn[[i]]$frequency)
+  }
+  rc[i,30] <- t.test(splitnn[[i]][which(splitnn[[i]]$plot=='C'),7],splitnn[[i]][which(splitnn[[i]]$plot=='H'),7])$p.value
 }
-```
-```{r}
-# new n list with the stdized
+# For Organic p-values and standardization
+for (i in 193:384){
+  for (j in 1:as.numeric(nrow(splitnn[[i]]))){
+    splitnn[[i]][j,9] <- (splitnn[[i]][j,7] - mean(splitnn[[i]]$frequency)) / sd(splitnn[[i]]$frequency) #standardizing both Control and Heat using 1 mean value
+  }
+  l <- i-192
+  rc[l,31] <- t.test(splitnn[[i]][which(splitnn[[i]]$plot=='C'),7],splitnn[[i]][which(splitnn[[i]]$plot=='H'),7])$p.value # using original frequencies
+}
+# printing standardized numbers into a .csv
 library(dplyr)
-nn <- bind_rows(splitn)
+nn <- bind_rows(splitnn)
 write.csv(nn, "data_with_standardizing.csv")
-```
-```{r testing something out; this code is not correct}
-# testing is stdizing n makes the numbers of nn
-  preproc_i <- preProcess(n, method=c("center", "scale"))
-  testn <- predict(preproc_i, n)
 
+# printing p-values into .csv
+names(rc)[names(rc) == "V31"] <- "Organic P-values"
+names(rc)[names(rc) == "pvalue"] <- "Mineral P-values"
+
+write.csv(rc, "p-values_of_Lipids.csv")
 ```
 
-```{r T-test to get p-values where the two samples are H and C}
-pvalues <- as.data.frame(names(splitn)[1:13]) 
-pvalues$min <- NA
-pvalues$org <- NA
-for (i in 1:13){
-  a = i+26
-  b = i+13
-  c = i+39
-  pvalues[i,2] <- t.test(splitn[[i]]$frequency, splitn[[a]]$frequency)$p.value
-  pvalues[i,3] <- t.test(splitn[[b]]$frequency, splitn[[c]]$frequency)$p.value
-}
-#cleaning up column names
-library(tidyverse)
-pvalues <- pvalues %>%
-  rename(lipid = "names(splitn)[1:13]")
-pvalues$lipid <- gsub(".M.C", "", pvalues$lipid)
-write.csv(pvalues, "p-values_of_Lipids.csv")
-```
-```{r ggplots of Control v Heated using splitn}
+ggplot creation
+=====================================  
+
+
+```{r ggplots of Control v Heated using splitnn}
 Minplotlist <- list()
 Orgplotlist <- list()
 # boxplot by rbinding the Min's and Org's
-for (i in 1:13){
-  a = i + 26
-  b = i + 13
-  c = i +39
-Min <- rbind(splitn[[i]], splitn[[a]])
-    p1 <- eval(substitute(
-        ggplot(data=Min,aes(x=plot, y=stdized, group=plot))+ 
-          geom_boxplot(aes(fill=plot)) + ggtitle(pvalues[i,1],"Mineral")))
-    Minplotlist[[i]] <- p1  # add each plot into plot list
-Org <- rbind(splitn[[b]], splitn[[c]])
-    p2 <- eval(substitute(
-        ggplot(data=Org,aes(x=plot, y=stdized, group=plot))+ 
-          geom_boxplot(aes(fill=plot)) + ggtitle(pvalues[i,1],"Mineral")))
-    Orgplotlist[[i]] <- p2  # add each plot into plot list
+for (i in 1:192){
+  x <- paste(round(rc[l,30], digits=3))
+  p1 <- ggplot(splitnn[[i]], aes(x=plot, y=V9, group=plot)) + geom_boxplot(aes(fill=plot)) +
+    ggtitle(splitnn[[i]][1,1], paste("Mineral; p-value=", x))
+  Minplotlist[[i]] <- p1
+  }
+for (i in 193:384){
+  l <- i-192
+  x <- paste(round(rc[l,31], digits=3))
+  p2 <- ggplot(splitnn[[i]], aes(x=plot, y=V9, group=plot)) + geom_boxplot(aes(fill=plot)) + ggtitle(splitnn[[i]][1,1],paste("Organic; p-value=", x))
+ Orgplotlist[[l]] <- p2
 }
 ```
-### selectInput is to make the input. renderPlot makes the graphic of the plot.
-```{r Minplotlist, echo=FALSE}
-selectInput(
-  'breaks', label = 'Select a plot by index number',
-  choices = c(1:13), selected = 1
-)
 
-renderPlot({
-  plot(Minplotlist[[as.numeric(input$breaks)]])
-})
-```
-```{r pdf for all boxplots}
+```{r pdf for all boxplots, include=FALSE}
 GG_save_pdf = function(list, filename) {
   #start pdf
   pdf(filename)
@@ -139,6 +137,24 @@ GG_save_pdf = function(list, filename) {
 GG_save_pdf(Minplotlist, "MineralLipids_Boxplots.pdf")
 GG_save_pdf(Orgplotlist, "OrganicLipids_Boxplots.pdf")
 ```
+Plot examples
+=====================================  
+
+### Statistically insignificant
+```{r echo=FALSE}
+Minplotlist[[1]]
+Orgplotlist[[1]]
+```
+
+### Statistically significant
+```{r echo=FALSE}
+Minplotlist[[22]]
+Orgplotlist[[22]]
+
+```
+
+
+
 
 
 
