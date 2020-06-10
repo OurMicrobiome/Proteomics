@@ -2,55 +2,62 @@
 title: "Prote-Home Page"
 author: "Hanna Choi"
 date: "6/3/2020"
-output: html_document
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: rows
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library(flexdashboard)
 ```
 
-## Welcome to Proteomics!
+Metabolomics
+=====================================  
    
-  
-#### Hanna Choi's Ongoing work:  
+Row {.tabset .tabset-fade}
+-------------------------------------
 
-##### Boxplots of Metabolites
+### Mineral Metabolites
 
-    
-  * Mineral Metabolites
-  
-    ![](Metabolites_Boxplots/mm_plots.png)
+![](Metabolites_Boxplots/mm_plots.png)
 
-  * Organic Metabolites
-  
-    ![](Metabolites_Boxplots/om_plots.png)
- 
-  * [Written descriptions of the mineral metabolites](Metabolites_Boxplots/write-up.html)
+### Organic Metabolites
 
-##### Tutorial for Boxplots by Hanna Choi 04/06/2020
+![](Metabolites_Boxplots/om_plots.png)
 
-  [Boxplot Tutorial in R](Metabolites_Boxplots/boxplot_tutorial.html)
+Row
+-------------------------------------
+
+[Written descriptions of the mineral metabolites](Metabolites_Boxplots/write-up.html)
+
+[Boxplot Tutorial in R](Metabolites_Boxplots/boxplot_tutorial.html)
       
-      
-##### Lipidomics
 
-   * CSV Datasets of significant lipids where p-value < 0.05 from attempt #1:
+Lipidomics
+=====================================  
+
+
+CSV Datasets of significant lipids where p-value < 0.05 from attempt #1:
   
   [Mineral](Lipidomics/Mineral_Lipids.csv)
   
   [Organic](Lipidomics/Organic_Lipids.csv)
   
-  * xlsx of dataset of p-values from attempt #2 and current code:
+
+xlsx of dataset of p-values from attempt #2 and **current** code:
   
   [all p-values](Lipidomics/p-values_of_Lipids.csv)
   
-   * Boxplots of each Lipid Group:
+
+Boxplots of each Lipid Group:
   
   [Mineral](Lipidomics/MineralLipids_Boxplots.pdf)
   
   [Organic](Lipidomics/OrganicLipids_Boxplots.pdf)
   
-  * All the code for Lipidomics includes p-value calculations and boxplot creation:
+
+All the code for Lipidomics includes p-value calculations and boxplot creation:
   
-  [HTML Code](Lipidmocs/compared_aligned.html)
+  [HTML Code](Lipidomocs/compared_aligned.html)
   

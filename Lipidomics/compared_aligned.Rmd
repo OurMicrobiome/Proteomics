@@ -88,13 +88,13 @@ for (i in 193:384){
 # printing standardized numbers into a .csv
 library(dplyr)
 nn <- bind_rows(splitnn)
-write.csv(nn, "data_with_standardizing.csv")
+write.csv(nn, "Lipidomics/data_with_standardizing.csv")
 
 # printing p-values into .csv
 names(rc)[names(rc) == "V31"] <- "Organic P-values"
 names(rc)[names(rc) == "pvalue"] <- "Mineral P-values"
 
-write.csv(rc, "p-values_of_Lipids.csv")
+write.csv(rc, "Lipidomics/p-values_of_Lipids.csv")
 ```
 
 ggplot creation
