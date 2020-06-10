@@ -1,7 +1,7 @@
 ---
 title: "Prote-Home Page"
 author: "Hanna Choi"
-date: "6/3/2020"
+date: "6/10/2020"
 output: 
   flexdashboard::flex_dashboard:
     orientation: rows
