@@ -1,0 +1,160 @@
+---
+title: "lipids plotted"
+author: "Hanna Choi"
+date: "6/2/2020"
+output: 
+  html_document:
+    code_folding: hide
+---
+
+### Introduction
+
+In this code, splitnn is the list of dataframes for the four groups: Mineral Layer Control, Mineral Layer Heater, Organic Layer Control, and Organic Layer Heated. Each lipid group in the four condition groups was normalized and then compared. There were 19 lipids in the Mineral layer that significantly (p < 0.05) reduced in abundance from Control to heated. There were also 9 lipids in the Organic layer that significantly reduced in abundance, but 3 lipids in the Organic layer - PC(18:1/20:4), PG(18:1/18:1), PE(P-16:0/16:1) - increased in abundance.
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggpubr)
+library(flexdashboard)
+library(crosstalk)
+library(plotly)
+library(caret)
+library(tidyverse)
+library(rJava)
+library(xlsx)
+library(openxlsx)
+library(ggplot2)
+```
+
+```{r imported data, include=FALSE}
+POS <- read.csv("Blanchard_Lipid_POS.csv", header=TRUE)
+NEG <- read.csv("Blanchard_Lipid_NEG.csv", header=TRUE)
+### Cleaned names
+names(POS) <- gsub(x = names(POS), pattern = "_POS", replacement = "_")  
+names(NEG) <- gsub(x=names(POS), pattern="_NEG", replacement="_")
+### add Column with POS or NEG
+POS$charge <- c(rep("POS",117))
+NEG$charge <- c(rep("NEG", 75))
+combined <- rbind(POS, NEG)
+names(combined) <- gsub(x = names(POS), pattern = "Blanch_Nat_Lip_", replacement = "")  
+rc <- combined[,c(-1,-2)]
+n <- gather(rc, key='plot', value=frequency, "C_12_AB_M_17_", "C_19_AB_M_16_", "C_14_AB_M_27_", "C_30_AB_M_14_", "C_4_AB_M_08_", "C_7_AB_M_07_"  ,"H_30_AB_M_11_"  ,"H_28_AB_M_03_","H_11_AB_M_13_", "H_17_AB_M_18_"  ,   "H_26_AB_M_12_"   ,  "H_2B_M_02_"    ,  "H_2_AB_M_23_", "H_32_AB_M_20_"   ,  "H_34_AB_M_01_"    , "H_4_AB_M_05_"   ,   "C_19_AB_O_26_"  , "C_27_AB_O_21_"    , "C_12_AB_O_25_"     ,"C_14_AB_O_09_"   ,  "C_34_AB_O_10_" , "C_4_AB_O_04_", "H_17_AB_O_22_",  "H_11_AB_O_24_"    , "H_2_AB_O_15_","H_32_AB_O_19_", "H_4_AB_O_06_")
+n <- n %>%
+  separate(plot, c("plot", "plot_number", "AB", "soil_type", "type_number"), "_")
+n$AB <- NULL
+n$lipid <- n$row.identity
+n$lipid <- gsub("\\(.*","",n$lipid)
+n$soil_type <- gsub("02", "M", n$soil_type)
+# n is the most organized of the lipids
+```
+
+```{r Subsetting by lipid type and soil type, include = FALSE}
+# splitnn is comparing heated and control
+splitnn <- split(n, list(n$row.identity, n$soil_type))
+# https://stackoverflow.com/questions/34174799/r-get-subset-from-data-frame-filtering-by-year-date-value
+combined[,1]
+
+# splitn_based_on_layer comparing mineral and organic
+splitn_based_on_layer <- split(n, list(n$row.identity, n$plot))
+```
+
+```{r Standardizing}
+# splitnn is list of datasets that are divided by compound and soil type
+# x is the names of splitnn (compounds repeated twice, 1 for the organic and 1 for the mineral)
+x <- as.data.frame(names(splitnn))
+# For Mineral p-values and standardization
+for (i in 1:192){
+  for (j in 1:as.numeric(nrow(splitnn[[i]]))){
+    splitnn[[i]][j,9] <- (splitnn[[i]][j,7] - mean(splitnn[[i]]$frequency)) / sd(splitnn[[i]]$frequency)
+  }
+x[i,2] <- t.test(splitnn[[i]][which(splitnn[[i]]$plot=='C'),7],splitnn[[i]][which(splitnn[[i]]$plot=='H'),7])$p.value
+}
+
+#For Organic p-values and standardization
+for (i in 193:384){
+  for (j in 1:as.numeric(nrow(splitnn[[i]]))){
+    splitnn[[i]][j,9] <- (splitnn[[i]][j,7] - mean(splitnn[[i]]$frequency)) / sd(splitnn[[i]]$frequency) #standardizing both Control and Heat using 1 mean value
+  }
+  x[i,2] <- t.test(splitnn[[i]][which(splitnn[[i]]$plot=='C'),7],splitnn[[i]][which(splitnn[[i]]$plot=='H'),7])$p.value # using original frequencies
+}
+
+######### DIFFERENCES using standardized values
+for (i in 1:192){
+x[i,3] <- mean(splitnn[[i]][1:6,9]) - mean(splitnn[[i]][7:16,9]) #Mineral difference of control minus heated based on standardized numbers
+}
+
+for (i in 193:384){
+  x[i,3] <- mean(splitnn[[i]][1:6,9]) - mean(splitnn[[i]][7:11,9]) #Organic difference of control minue heated based on standardized numbers
+}
+########## Same as above but using real frequencies
+for (i in 1:192){
+x[i,4] <- mean(splitnn[[i]][1:6,7]) - mean(splitnn[[i]][7:16,7]) #Mineral difference of control minus heated with actual frequencies
+}
+for (i in 193:384){
+x[i,4] <- mean(splitnn[[i]][1:6,7]) - mean(splitnn[[i]][7:11,7]) #Organic difference of control minus heated with actual frequencies
+}
+
+names(x)[names(x) == "V2"] <- "Pvalues"
+names(x)[names(x) == "V3"] <- "Standardized_Difference_Control_minus_Heated"
+names(x)[names(x) == "V4"] <- "Actual_Difference_Control_minus_Heated"
+
+```
+```{r, include = FALSE}
+write.csv(x, file = "comprehensive_Lipid_data_analysis_asof9.24.20.csv")
+```
+
+
+[Dataset CSV](`comprehensive_Lipid_data_analysis_including_rawvalues_asof9.9.20.csv`)
+
+
+Boxplots of the significant lipids of the Organic Layer:
+```{r}
+#x indices use splitnn
+splitnn[214]
+significant_indices <- c(214,24,139,22,21,238,239,14,190,251,31,62,28,225,295,250,181,380,358,145,254,8,9,169,244,159,36,227,23,35,140)
+significantplots <- list()
+for (i in significant_indices){
+  significantplots[[i]] <- ggplot(splitnn[[214]], aes(x=plot, y=V9, group=plot)) + geom_boxplot(aes(fill=plot)) + ggtitle(names(splitnn[i]))
+}
+significantplots[[181]]
+```
+
+
+
+```{r ggplots of Control v Heated using splitnn}
+Minplotlist <- list()
+Orgplotlist <- list()
+# boxplot by rbinding the Min's and Org's
+for (i in 1:192){
+  x <- paste(round(rc[l,30], digits=3))
+  p1 <- ggplot(splitnn[[i]], aes(x=plot, y=V9, group=plot)) + geom_boxplot(aes(fill=plot)) +
+    ggtitle(splitnn[[i]][1,1], paste("Mineral; p-value=", x))
+  Minplotlist[[i]] <- p1
+  }
+for (i in 193:384){
+  l <- i-192
+  x <- paste(round(rc[l,31], digits=3))
+  p2 <- ggplot(splitnn[[i]], aes(x=plot, y=V9, group=plot)) + geom_boxplot(aes(fill=plot)) + ggtitle(splitnn[[i]][1,1],paste("Organic; p-value=", x))
+ Orgplotlist[[l]] <- p2
+}
+
+GG_save_pdf = function(list, filename) {
+  #start pdf
+  pdf(filename)
+
+  #loop
+  for (p in list) {
+    print(p)
+  }
+
+  #end pdf
+  dev.off()
+
+  invisible(NULL)
+}
+#GG_save_pdf(Minplotlist, "MineralLipids_Boxplots.pdf")
+#GG_save_pdf(Orgplotlist, "OrganicLipids_Boxplots.pdf")
+```
+
+
+
+
