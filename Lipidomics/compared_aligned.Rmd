@@ -9,7 +9,7 @@ output:
 
 ### Introduction
 
-In this code, splitnn is the list of dataframes for the four groups: Mineral Layer Control, Mineral Layer Heater, Organic Layer Control, and Organic Layer Heated. Each lipid group in the four condition groups was normalized and then compared. There were 19 lipids in the Mineral layer that significantly (p < 0.05) reduced in abundance from Control to heated. There were also 9 lipids in the Organic layer that significantly reduced in abundance, but 3 lipids in the Organic layer - PC(18:1/20:4), PG(18:1/18:1), PE(P-16:0/16:1) - increased in abundance.
+In this code, splitnn is the list of dataframes for the four groups: Mineral Layer Control, Mineral Layer Heater, Organic Layer Control, and Organic Layer Heated. The lipid abundances were normalized and compared. There were 19 lipids in the Mineral layer that significantly (p < 0.05) reduced in abundance from Control to heated. There were also 9 lipids in the Organic layer that significantly reduced in abundance, but 3 lipids in the Organic layer - PC(18:1/18:2)_B, TG(58:9), and TG(53:5) - increased in abundance.
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -45,6 +45,7 @@ n$lipid <- n$row.identity
 n$lipid <- gsub("\\(.*","",n$lipid)
 n$soil_type <- gsub("02", "M", n$soil_type)
 # n is the most organized of the lipids
+orderedn <- n[order(n$row.identity),]
 ```
 
 ```{r Subsetting by lipid type and soil type, include = FALSE}
@@ -52,9 +53,6 @@ n$soil_type <- gsub("02", "M", n$soil_type)
 splitnn <- split(n, list(n$row.identity, n$soil_type))
 # https://stackoverflow.com/questions/34174799/r-get-subset-from-data-frame-filtering-by-year-date-value
 combined[,1]
-
-# splitn_based_on_layer comparing mineral and organic
-splitn_based_on_layer <- split(n, list(n$row.identity, n$plot))
 ```
 
 ```{r Standardizing}
@@ -96,65 +94,88 @@ x[i,4] <- mean(splitnn[[i]][1:6,7]) - mean(splitnn[[i]][7:11,7]) #Organic differ
 names(x)[names(x) == "V2"] <- "Pvalues"
 names(x)[names(x) == "V3"] <- "Standardized_Difference_Control_minus_Heated"
 names(x)[names(x) == "V4"] <- "Actual_Difference_Control_minus_Heated"
-
+x[,5] <- NA
+names(x)[names(x) == "Mineral_Average"] <- "Control_Average"
+x[,6] <- NA
+names(x)[names(x) == "Organic_Average"] <- "Heated_Average"
+for (i in 1:192){
+  x[i,5] <- mean(splitnn[[i]][1:6,7])
+  x[i,6] <- mean(splitnn[[i]][7:16,7])
+}
+for (i in 193:384){
+  x[i,5] <- mean(splitnn[[i]][1:6,7])
+  x[i,6] <- mean(splitnn[[i]][7:11,7])
+}
+###########################################################################################
+#UPDATE LIPID .CSV FILE HERE:
+write.csv(x, file = "comprehensive_Lipid_data_analysis_asof9.28.20.csv")
 ```
-```{r, include = FALSE}
-write.csv(x, file = "comprehensive_Lipid_data_analysis_asof9.24.20.csv")
-```
 
 
-[Dataset CSV](`comprehensive_Lipid_data_analysis_including_rawvalues_asof9.9.20.csv`)
+[Dataset CSV](`comprehensive_Lipid_data_analysis_asof9.24.20.csv`)
 
 
 Boxplots of the significant lipids of the Organic Layer:
 ```{r}
 #x indices use splitnn
-splitnn[214]
-significant_indices <- c(214,24,139,22,21,238,239,14,190,251,31,62,28,225,295,250,181,380,358,145,254,8,9,169,244,159,36,227,23,35,140)
-significantplots <- list()
-for (i in significant_indices){
-  significantplots[[i]] <- ggplot(splitnn[[214]], aes(x=plot, y=V9, group=plot)) + geom_boxplot(aes(fill=plot)) + ggtitle(names(splitnn[i]))
+significant_indices_o <- c(214,24,139,22,21,238,239,14,190,251,31,62,28,225,295,250,181,380,358,145,254,8,9,169,244,159,36,227,23,35,140)
+significantplots.o <- list()
+for (i in significant_indices_o){
+  significantplots.o[[i]] <- ggplot(splitnn[[214]], aes(x=plot, y=V9, group=plot)) + geom_boxplot(aes(fill=plot)) + ggtitle(names(splitnn[i]))
 }
-significantplots[[181]]
+significantplots.o[[214]]
 ```
+```{r}
+significant_indices.m <- c(22, 46,47,59,33,103,58,188,166,62,52,35)
+significantplots.m <- list()
+for (i in significant_indices.m){
+  significantplots.m[[i]] <- ggplot(splitnn[[214]], aes(x=plot, y=V9, group=plot)) + geom_boxplot(aes(fill=plot)) + ggtitle(names(splitnn[i]))
+}
+significantplots.m[[22]]
+```
+(Neidleman, 1987; Introduction).
+"The integrity of living cells in response to environmental stresses such as temperature depends very much on the bimolecular lipid layer and the associated non-lipid components." 
 
+"Temperature effects are seldom exerted separately from other related factors that can also affect lipid composition: these may include nutrient availability, pH, culture age, growth rate, oxygen tension, pressure, salinity, drought, humidity and genetic or biochemical competence."
 
+Ratledge (1982) found that in YEASTA "high 02 availability was associated with an increase in lipid unsaturation at a given temperature". Harris and James (1969) found "an increase in oxygen solubility
+and, therefore, availability at low temperatures, was the major reason for
+increased unsaturated lipid, because desaturation is oxygen-dependent".
 
-```{r ggplots of Control v Heated using splitnn}
-Minplotlist <- list()
-Orgplotlist <- list()
-# boxplot by rbinding the Min's and Org's
+Microsporum gypseum (Fungus) Jindal et. al. 1983 - Glucose and Glycerol - increased unsaturation
+Rhodotorula Gracilis (Yeast) - Greater unsaturation with N-limitation
+Taphrina deformans (Fungus) - % 18:3 increased in triazole
+Saccharomyces rouxii (Yeast) - with increasing NaCl - % 18:2, 16:1 decreased and % 18:1 increased with 
+E. Coli (Bacterium) - % 18: I increased with ethanol and trichloroacetic acid % 16:0 decreased by ethanol
+Rhizopus arrhizus (Fungus) - % 18:3 > w/ arabinose 
+Rhodotorula glutinis (Yeast) - Unsaturation greater in neutral and glycolipids in C-limitations; in N-limitations, phospholipid unsaturation greater. Unsaturation increased with increasing dilution rates.
+
+```{r}
+x[,5] <- NA
+names(x)[names(x) == "names(splitnn)"] <- "row.identity"
+
+names(x)[names(x) == "V5"] <- "Control_Average"
+x[,6] <- NA
+names(x)[names(x) == "V6"] <- "Heated_Average"
 for (i in 1:192){
-  x <- paste(round(rc[l,30], digits=3))
-  p1 <- ggplot(splitnn[[i]], aes(x=plot, y=V9, group=plot)) + geom_boxplot(aes(fill=plot)) +
-    ggtitle(splitnn[[i]][1,1], paste("Mineral; p-value=", x))
-  Minplotlist[[i]] <- p1
-  }
+  x[i,5] <- mean(splitnn[[i]][1:6,7])
+  x[i,6] <- mean(splitnn[[i]][7:16,7])
+}
 for (i in 193:384){
-  l <- i-192
-  x <- paste(round(rc[l,31], digits=3))
-  p2 <- ggplot(splitnn[[i]], aes(x=plot, y=V9, group=plot)) + geom_boxplot(aes(fill=plot)) + ggtitle(splitnn[[i]][1,1],paste("Organic; p-value=", x))
- Orgplotlist[[l]] <- p2
+  x[i,5] <- mean(splitnn[[i]][1:6,7])
+  x[i,6] <- mean(splitnn[[i]][7:11,7])
 }
-
-GG_save_pdf = function(list, filename) {
-  #start pdf
-  pdf(filename)
-
-  #loop
-  for (p in list) {
-    print(p)
-  }
-
-  #end pdf
-  dev.off()
-
-  invisible(NULL)
-}
-#GG_save_pdf(Minplotlist, "MineralLipids_Boxplots.pdf")
-#GG_save_pdf(Orgplotlist, "OrganicLipids_Boxplots.pdf")
 ```
 
-
-
-
+```{r}
+x$row.identity <- gsub(".[MO]","",x$row.identity)
+x[c(1:192),7] <- "Mineral"
+x[c(193:384), 7] <- "Organic"
+names(x)[names(x) == "V7"] <- "soil_type"
+```
+```{r}
+# merge formulas available and x
+formula <- read_excel("formula_not_all.xlsx")
+x_formula <- merge(x, formula, by = c("row.identity", "soil_type"), all.x = TRUE)
+```
+"It is tempting to suggest that at least one reason for the thermophilic characteristic of these bacteria is the inability to synthesize unsaturated fatty acids to allow growth at lower temperatures" (p.9).
