@@ -1,15 +1,17 @@
 ---
 title: "lipids plotted"
 author: "Hanna Choi"
-date: "6/2/2020"
+date: "9/30/2020"
 output: 
   html_document:
     code_folding: hide
 ---
 
+> ![overview_image](lipidoverview.jpg)
+
 ### Introduction
 
-In this code, splitnn is the list of dataframes for the four groups: Mineral Layer Control, Mineral Layer Heater, Organic Layer Control, and Organic Layer Heated. The lipid abundances were normalized and compared. There were 19 lipids in the Mineral layer that significantly (p < 0.05) reduced in abundance from Control to heated. There were also 9 lipids in the Organic layer that significantly reduced in abundance, but 3 lipids in the Organic layer - PC(18:1/18:2)_B, TG(58:9), and TG(53:5) - increased in abundance.
+In this code, splitnn is the list of dataframes for the four groups: Mineral Layer Control, Mineral Layer Heater, Organic Layer Control, and Organic Layer Heated. The lipid abundances were normalized and compared. There were 19 lipids in the Mineral layer that significantly (p < 0.05) reduced in abundance from Control to heated. There were also 9 lipids in the Organic layer that significantly reduced in abundance, and 3 lipids in the Organic layer - PC(18:1/18:2)_B, TG(58:9), and TG(53:5) - that increased in abundance.
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -17,12 +19,13 @@ library(ggpubr)
 library(flexdashboard)
 library(crosstalk)
 library(plotly)
-library(caret)
 library(tidyverse)
 library(rJava)
 library(xlsx)
+library(readxl)
 library(openxlsx)
 library(ggplot2)
+library(gridExtra)
 ```
 
 ```{r imported data, include=FALSE}
@@ -52,7 +55,6 @@ orderedn <- n[order(n$row.identity),]
 # splitnn is comparing heated and control
 splitnn <- split(n, list(n$row.identity, n$soil_type))
 # https://stackoverflow.com/questions/34174799/r-get-subset-from-data-frame-filtering-by-year-date-value
-combined[,1]
 ```
 
 ```{r Standardizing}
@@ -108,7 +110,7 @@ for (i in 193:384){
 }
 ###########################################################################################
 #UPDATE LIPID .CSV FILE HERE:
-write.csv(x, file = "comprehensive_Lipid_data_analysis_asof9.28.20.csv")
+write.csv(x_formula_all, file = "comprehensive_Lipid_data_analysis_asof10.8.20.csv")
 ```
 
 
@@ -121,25 +123,31 @@ Boxplots of the significant lipids of the Organic Layer:
 significant_indices_o <- c(214,24,139,22,21,238,239,14,190,251,31,62,28,225,295,250,181,380,358,145,254,8,9,169,244,159,36,227,23,35,140)
 significantplots.o <- list()
 for (i in significant_indices_o){
-  significantplots.o[[i]] <- ggplot(splitnn[[214]], aes(x=plot, y=V9, group=plot)) + geom_boxplot(aes(fill=plot)) + ggtitle(names(splitnn[i]))
+  significantplots.o[[i]] <- ggplot(splitnn[[i]], aes(x=plot, y=V9, group=plot)) + geom_boxplot(aes(fill=plot)) + labs(subtitle = names(splitnn[i])) + theme(axis.title.y = element_blank())
 }
-significantplots.o[[214]]
+olist <- list(significantplots.o[[214]], significantplots.o[[24]], significantplots.o[[139]], significantplots.o[[22]], significantplots.o[[21]], significantplots.o[[238]], significantplots.o[[239]], significantplots.o[[14]], significantplots.o[[190]], significantplots.o[[251]], significantplots.o[[31]], significantplots.o[[62]], significantplots.o[[28]], significantplots.o[[225]], significantplots.o[[295]], significantplots.o[[250]], significantplots.o[[181]], significantplots.o[[380]], significantplots.o[[358]], significantplots.o[[145]], significantplots.o[[254]], significantplots.o[[8]], significantplots.o[[9]], significantplots.o[[169]], significantplots.o[[244]], significantplots.o[[159]], significantplots.o[[36]], significantplots.o[[227]], significantplots.o[[23]], significantplots.o[[35]], significantplots.o[[140]])
+p <- length(olist)
+pCol <- floor(sqrt(p))
+#do.call("grid.arrange", c(olist, ncol=pCol))
+
 ```
 ```{r}
 significant_indices.m <- c(22, 46,47,59,33,103,58,188,166,62,52,35)
 significantplots.m <- list()
 for (i in significant_indices.m){
-  significantplots.m[[i]] <- ggplot(splitnn[[214]], aes(x=plot, y=V9, group=plot)) + geom_boxplot(aes(fill=plot)) + ggtitle(names(splitnn[i]))
+  significantplots.m[[i]] <- ggplot(splitnn[[i]], aes(x=plot, y=V9, group=plot)) + geom_boxplot(aes(fill=plot)) + labs(subtitle = names(splitnn[i])) + theme(axis.title.x = element_blank(), axis.title.y = element_blank())
 }
-significantplots.m[[22]]
+mlist <- list(significantplots.m[[22]], significantplots.m[[46]], significantplots.m[[47]], significantplots.m[[59]], significantplots.m[[33]], significantplots.m[[103]], significantplots.m[[58]], significantplots.m[[188]], significantplots.m[[166]], significantplots.m[[62]], significantplots.m[[52]], significantplots.m[[35]]) 
+n <- length(mlist)
+nCol <- floor(sqrt(n))
+do.call("grid.arrange", c(mlist, ncol=nCol))
 ```
 (Neidleman, 1987; Introduction).
 "The integrity of living cells in response to environmental stresses such as temperature depends very much on the bimolecular lipid layer and the associated non-lipid components." 
 
 "Temperature effects are seldom exerted separately from other related factors that can also affect lipid composition: these may include nutrient availability, pH, culture age, growth rate, oxygen tension, pressure, salinity, drought, humidity and genetic or biochemical competence."
 
-Ratledge (1982) found that in YEASTA "high 02 availability was associated with an increase in lipid unsaturation at a given temperature". Harris and James (1969) found "an increase in oxygen solubility
-and, therefore, availability at low temperatures, was the major reason for
+Ratledge (1982) found that in YEAST "high 02 availability was associated with an increase in lipid unsaturation at a given temperature". Harris and James (1969) found "an increase in oxygen solubility and, therefore, availability at low temperatures, was the major reason for
 increased unsaturated lipid, because desaturation is oxygen-dependent".
 
 Microsporum gypseum (Fungus) Jindal et. al. 1983 - Glucose and Glycerol - increased unsaturation
@@ -165,9 +173,7 @@ for (i in 193:384){
   x[i,5] <- mean(splitnn[[i]][1:6,7])
   x[i,6] <- mean(splitnn[[i]][7:11,7])
 }
-```
 
-```{r}
 x$row.identity <- gsub(".[MO]","",x$row.identity)
 x[c(1:192),7] <- "Mineral"
 x[c(193:384), 7] <- "Organic"
@@ -176,6 +182,14 @@ names(x)[names(x) == "V7"] <- "soil_type"
 ```{r}
 # merge formulas available and x
 formula <- read_excel("formula_not_all.xlsx")
-x_formula <- merge(x, formula, by = c("row.identity", "soil_type"), all.x = TRUE)
+sortedx <- x[order(x$Pvalues),]
+row.names(sortedx) <- NULL
+sigx <- sortedx[c(1:31),]
+x_formula_all <- merge(x, formula, by = c("row.identity", "soil_type"), all.x = TRUE)
+sigx_formula <- merge(sigx, formula, by = c("row.identity", "soil_type"), all.x = TRUE)
+sigx_formula <- sigx_formula[order(sigx_formula$Pvalues),]
+row.names(sigx_formula) <- NULL
+#write.csv(sigx_formula, "significantlipidswithformula.csv")
 ```
-"It is tempting to suggest that at least one reason for the thermophilic characteristic of these bacteria is the inability to synthesize unsaturated fatty acids to allow growth at lower temperatures" (p.9).
+	
+C06037 - DGDG C17H26O15R2 - possible biomarker for bacteroid forms of  Bradyrhizobium japonicum as it is usually only found in plants - not found in our plots
