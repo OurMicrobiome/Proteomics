@@ -19,9 +19,6 @@ data <- read.csv("EMSL_PNNL.csv", header=TRUE)
 o_data <- data[c(36,17,47,39,110,12,103,55,7,124,54,181,27,138,10,141,87,118,209,26,132,1,38,48,125,23,123,35,90,6,63),c(1,18:28)]
 rownames(o_data) <- 1:nrow(o_data)
 ```
-```{r}
-
-```
 
 ```{r fig.length=60, fig.width=30}
 plot_list = list()

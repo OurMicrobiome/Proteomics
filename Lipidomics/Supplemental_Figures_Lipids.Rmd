@@ -1,0 +1,133 @@
+---
+title: "Supplemental Lipid Figures"
+author: "Hanna Choi"
+date: "11/17/2020"
+output:
+  html_document:
+    code_folding: hide
+---
+<center>
+
+![](lipidoverview.jpg)
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning=FALSE)
+library(readr)
+library(dplyr)
+library(ggplot2)
+library(tidyverse)
+library(DT)
+```
+# Making usable data for ggplot
+
+```{r data with counts}
+POS <- read.csv("Blanchard_Lipid_POS.csv", header=TRUE)
+NEG <- read.csv("Blanchard_Lipid_NEG.csv", header=TRUE)
+names(POS) <- gsub(x = names(POS), pattern = "_POS", replacement = "")  
+names(NEG) <- gsub(x=names(POS), pattern="_NEG", replacement="")
+POS$charge <- "POS"
+NEG$charge <- "NEG"
+data <- rbind(POS, NEG) # lipid data with counts
+```
+```{r metadata of only significant, message=FALSE}
+summary_class <- read_csv("significantlipidswithformula.csv")[-1] # made in comparealigned .Rmd
+summary_class <- summary_class %>%
+  rename(Main_Class = "Main Class") #getting rid of the space in column
+summary_class <- summary_class[order(summary_class$Main_Class, summary_class$Standardized_Difference_Control_minus_Heated),] #ordering the metadata
+```
+```{r workable dataframe df for ggplot}
+df <- merge(summary_class, data, by="row.identity", all=FALSE)
+# For the dflong below:
+# columns 17-43 is counts 
+# Blanch_Nat_Lip is redundant
+# separate by treatment Control vs Heated
+dflong <- df[-c(11:16)] %>% 
+  gather(plot, count,Blanch_Nat_Lip_C_12_AB_M_17:Blanch_Nat_Lip_H_4_AB_M_05) %>% 
+  mutate(plot = gsub("Blanch_Nat_Lip_", "", plot)) %>% 
+  separate(plot, c("treatment","plot"), "_", extra = "merge") %>%
+  unite("row.id", c(row.identity, soil_type), remove=FALSE) %>%
+  mutate(row.id = gsub("_Mineral", "M", row.id)) %>%
+  mutate(row.id = gsub("_Organic", "O", row.id)) %>%
+  arrange(soil_type)
+datatable(dflong)
+```
+
+# Overarching Lipid Figure
+```{r slightly messy but all significant lipids ordered by class}
+lipidfigure <- ggplot(data=dflong, aes(x=row.id, y=log(count), group_by(Main_Class, treatment), fill = treatment, color=soil_type)) + geom_boxplot() + coord_flip() + scale_fill_manual(values = c( "#082BEA", "#EA0D08")) + scale_color_manual(values = c("#D4E126", "#12EF3A")) + ggtitle("Significant Lipids Heated v. Control Soil Plots")
+lipidfigure
+```
+# Making plots by Class
+
+```{r ggplots}
+list.ggplotsbygroup <- dflong %>% group_by(Main_Class) %>% do(plots=ggplot(data=.) + aes(x=row.id, y=log(count)) + geom_boxplot(aes(fill=treatment)) + xlab("compound") + ylab("abundance (logged)") + ggtitle(unique(.$Main_Class)))
+```
+# Analysis by Group
+```{r, fig.cap="DG; inconclusive due to number of compounds being low and no significant differences between chain lengths or degrees of saturation"}
+DG1 <- list.ggplotsbygroup$plots[[1]] + coord_flip()
+DG1
+```
+
+---
+
+```{r, fig.cap = "PC; there's an interesting difference between PC_A and PC_B which only differ in stereochemistry"}
+PC2 <- list.ggplotsbygroup$plots[[2]] + coord_flip()
+PC2
+```
+
+---
+
+```{r, fig.cap = "PE is found to be a plant growth regulator"}
+PE3 <- list.ggplotsbygroup$plots[[3]] + coord_flip()
+PE3
+```
+
+---
+
+```{r, fig.cap = "DGDG; decreased abundance for all compunds"}
+DGDG4 <- list.ggplotsbygroup$plots[[4]] + coord_flip()
+DGDG4
+```
+
+---
+
+```{r, fig.cap = "Only 1 hexosylceramides with two different stereochemical forms found to be significantly altered due to Temeprature. The abundance signficantly decreased in the Heated plots"}
+HexCer5 <- list.ggplotsbygroup$plots[[5]] + coord_flip()
+HexCer5
+```
+
+---
+
+```{r, fig.cap = "Significant DGTSA's decreased in abundance as well"}
+DGTSA6 <- list.ggplotsbygroup$plots[[6]] + coord_flip()
+DGTSA6
+```
+
+---
+
+```{r, fig.cap = "TG's are most common lipids in soil and TG(58:9) was found to be the only lipid to increase in abundance in the heated plots over the control plots"}
+TG7 <- list.ggplotsbygroup$plots[[7]] + coord_flip()
+TG7
+```
+
+# Chain Length Relation in TG's
+
+_more background info in Literature Review_
+
+Literature has stated that soil composition and lipid composition has been shown to adapt to environmental change including temperature. One major strategy by which *plants* adapt to temperature change is to decrease the degree of unsaturation of membrane lipids (aka increase saturation) under high temperature and increase [unsaturation] under low temperature. 
+
+```{r TG dataframe for chain length and degree of saturation}
+TGchain <- summary_class[c(23:31), c(1,4)] %>%
+  separate(row.identity, c("length", "dbond_number"), ":") %>%
+  mutate(length = str_replace(length, "TG\\(", "")) %>%
+  mutate(dbond_number = str_replace(dbond_number, "\\)", "")) %>%
+  mutate(dbond_number = str_replace(dbond_number, "_B", ""))
+```
+```{r TG plot of chain length and degree of saturation with standardized count}
+TGplot <- ggplot(TGchain, aes(x=length, y=Standardized_Difference_Control_minus_Heated, size=dbond_number, color=dbond_number)) + geom_point() + ggtitle("Triacylglyerols") + ylab("Difference [C - H]")
+TGplot
+```
+
+TG is the largest group (out of 7), and there was no distinguishable trend between saturation or chain length with abundance. If anything, the most saturated (48:1) has a high Heated Plot count over Control  while the least saturated (58:9) has a high Control Plot count over Heated. This is the opposite to findings in plants.  
+
+</center>
