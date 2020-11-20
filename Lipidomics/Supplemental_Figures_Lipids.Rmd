@@ -8,8 +8,6 @@ output:
 ---
 <center>
 
-![](lipidoverview.jpg)
-
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, warning=FALSE)
 library(readr)
@@ -17,6 +15,7 @@ library(dplyr)
 library(ggplot2)
 library(tidyverse)
 library(DT)
+library(ggpubr)
 ```
 # Making usable data for ggplot
 
@@ -46,15 +45,18 @@ dflong <- df[-c(11:16)] %>%
   mutate(plot = gsub("Blanch_Nat_Lip_", "", plot)) %>% 
   separate(plot, c("treatment","plot"), "_", extra = "merge") %>%
   unite("row.id", c(row.identity, soil_type), remove=FALSE) %>%
-  mutate(row.id = gsub("_Mineral", "M", row.id)) %>%
-  mutate(row.id = gsub("_Organic", "O", row.id)) %>%
+  mutate(row.id = gsub("_Mineral", "", row.id)) %>%
+  mutate(row.id = gsub("_Organic", "", row.id)) %>%
   arrange(soil_type)
-datatable(dflong)
+dflongMineral <- dflong[which(dflong$soil_type == "Mineral"),]
+dflongOrganic <- dflong[which(dflong$soil_type == "Organic"),]
 ```
 
 # Overarching Lipid Figure
-```{r slightly messy but all significant lipids ordered by class}
-lipidfigure <- ggplot(data=dflong, aes(x=row.id, y=log(count), group_by(Main_Class, treatment), fill = treatment, color=soil_type)) + geom_boxplot() + coord_flip() + scale_fill_manual(values = c( "#082BEA", "#EA0D08")) + scale_color_manual(values = c("#D4E126", "#12EF3A")) + ggtitle("Significant Lipids Heated v. Control Soil Plots")
+```{r slightly messy but all significant lipids ordered by class, fig.cap = "Lipidomic data found 31 lipids that were altered in abundance significantly. 1 of the 31 lipid abundances were found to have increased due to an increase in temperature. From the figure, TG is Triacylglyerol"}
+lipidfigureMineral <- ggplot(data=dflongMineral, aes(x=row.id, y=log(count), group_by(Main_Class, treatment), fill = treatment)) + geom_boxplot(show.legend = FALSE) + coord_flip() + scale_fill_manual(values = c( "#082BEA", "#EA0D08")) + scale_color_manual(values = c("#D4E126", "#12EF3A")) + ggtitle("Significant Lipids Heated v. Control Soil Mineral Plots") + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())
+lipidfigureOrganic <- ggplot(data=dflongOrganic, aes(x=row.id, y=log(count), group_by(Main_Class, treatment), fill = treatment)) + geom_boxplot() + coord_flip() + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + scale_fill_manual(values = c( "#082BEA", "#EA0D08")) + scale_color_manual(values = c("#D4E126", "#12EF3A")) + ggtitle("Significant Lipids Heated v. Control Soil Organic Plots")
+lipidfigure <- ggarrange(lipidfigureMineral, lipidfigureOrganic, ncol=1)
 lipidfigure
 ```
 # Making plots by Class
