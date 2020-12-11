@@ -3,199 +3,120 @@ title: "omu using KEGGmatches"
 author: "Hanna Choi"
 output: html_document
 ---
-```{r}
-BiocManager::install("KEGGREST")
-install.packages(omu)
-```
+
+## content
+
+My count data is countdatacsv; df is the count data with categories. mymetadata is my metadata. I am trying to put the df and mymetedata into omu_summary, a function that gives t-test statistics and even folding analysis. I am following this vignette:
+https://cran.r-project.org/web/packages/omu/vignettes/Omu_vignette.html
+
 
 ```{r setup, include=FALSE, warning=FALSE, message=FALSE}
-knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning=FALSE)
+knitr::opts_chunk$set(message=FALSE, warning=FALSE)
 library(omu)
-library(KEGGREST)
 library(readr)
-library(dplyr)
 library(tidyverse)
-```
-# Following this vignette:
-https://cran.r-project.org/web/packages/omu/vignettes/Omu_vignette.html
-```{r their example data analysis}
-#their example (below) works fine
-DF <- assign_hierarchy(count_data = c57_nos2KO_mouse_countDF, keep_unknowns = TRUE, identifier = "KEGG")
-# package included c57_nos2KO_mouse_metadata and c57_nos2KO_mouse_countDF
-omu_summary(count_data = DF, metadata = c57_nos2KO_mouse_metadata, numerator = "Strep", denominator = "Mock", response_variable = "Metabolite", Factor = "Treatment", log_transform = TRUE, p_adjust = "BH", test_type = "welch")
-```
+library(DT)
+library(rstatix)
+library(ggpubr)
+countdata <- read_metabo("EMSL_PNNL_plusKEGG.csv")[-1]
+# reads as dataframe not 'array'
+#first column was just indices so they were deleted
 
-# Load data and metadata
-```{r, message=FALSE, warning=FALSE}
-countdata <- read_metabo("EMSL_PNNL_plusKEGG.csv")[-1] #first column was just indices so they were deleted
-# countdatacsv <- read_csv("EMSL_PNNL_plusKEGG.csv")[-1] 
-# above, NA is not a string 
+countdatacsv <- read_csv("EMSL_PNNL_plusKEGG.csv")[-1]
+# using read_csv because read_metabo doesn't work for mutate() 
+countdatacsv <- countdatacsv %>% mutate_if(is.numeric, round, 0) %>%
+  mutate_if(is.double,as.integer) %>%
+  mutate_if(is.character,as.factor)
 
 mymetadata <- read_csv("EMSL_PNNL_metadata.csv")[-1] #ditto
 mymetadata <- mymetadata %>%
-  mutate(Grouped = gsub("_", "", Grouped))
-mymetadata <- mymetadata %>% 
-  group_by(Background) %>%
-  group_by(Treatment)
+  mutate(Grouped = gsub("_", "", Grouped)) %>%
+  mutate_if(is.character, as.factor)
+head(mymetadata)
 ```
 
-# Assigning omu hierarchical class data using the KEGG Compound Name
+```{r their example data analysis}
+# their example (below) works fine
+# omu package included c57_nos2KO_mouse_metadata and c57_nos2KO_mouse_countDF
+# assigning hierarchy characterizes the metabolites:
+DF <- assign_hierarchy(count_data = c57_nos2KO_mouse_countDF, keep_unknowns = TRUE, identifier = "KEGG")
+theirsummary <- omu_summary(count_data = DF, metadata = c57_nos2KO_mouse_metadata, numerator = "Strep", denominator = "Mock", response_variable = "Metabolite", Factor = "Treatment", log_transform = TRUE, p_adjust = "BH", test_type = "welch")
+```
+
+### Assigning omu hierarchical class data using the KEGG Compound Name
+
 ```{r}
 df <- assign_hierarchy(count_data = countdata, keep_unknowns = TRUE, identifier = "KEGG")
 ```
 
-# 'omu_summary' intro for summary statistical data using data and metadata
-```{r}
-# ERROR with length(df[,"Metabolite"]); for some reason output is 1 instead of 211.
-length(df[,"Metabolite"])
-df[,"Metabolite"]
-length(df$Metabolite)
-nrow(df[,"Metabolite"])
-nrow(df$Metabolite)
-length(DF)
-mymetadata$Treatment #gives you values
+### 'omu_summary' intro for summary statistical data using data and metadata; this doesn't work.
 
-mymetadata[,"Treatment"] # give you column including header
+> I've tried changing the type of values in the df columns from character to factor and double to integer to mirror their example data
+
+```{r eval = FALSE}
 df_stats <- omu_summary(count_data = df, metadata = mymetadata, numerator = "H", denominator = "C", response_variable = "Metabolite", Factor = "Treatment", log_transform = FALSE, p_adjust = "BH", test_type = "welch")
 # if csv version of data is read, Error in `.rowNamesDF<-`(x, value = value) : invalid 'row.names' length
 ```
 
-# Fixing the nrow vs. length problem for .csv data
-```{r omu_summary_edited, message=FALSE, warning=FALSE}
-omu_summary_edited <- function (count_data, metadata, numerator, denominator, response_variable, 
-  Factor, log_transform, p_adjust, test_type) 
-{
-  rownames(count_data) <- count_data$response_variable
-  count_data[, response_variable] <- NULL
-  data_Int <- count_data[sapply(count_data, function(x) is.numeric(x))]
-  data_Transpose <- as.data.frame(t(data_Int))
-  data_Transpose <- as.data.frame(cbind(Sample = rownames(data_Transpose), 
-    data_Transpose))
-  Factor = metadata$Factor
-  data_Transpose$Factor = Factor[match(metadata$Sample, data_Transpose$Sample)]
-  data_Subset <- filter(data_Transpose, Factor == numerator | Factor == denominator) #edit added data_Transpose$ before Factor for numerator and denominator
-  rownames(data_Subset) <- data_Subset[, "Sample"]
-  data_Subset[, "Sample"] <- NULL
-  data_Numeric <- data_Subset[sapply(data_Subset, function(x) is.numeric(x))]
-  data_Numeric <- data.frame(lapply(data_Numeric, function(x) as.numeric(as.character(x))), 
-    check.names = F, row.names = rownames(data_Numeric))
-  data_Log <- as.data.frame(log(data_Numeric))
-  data_Log$Factor = data_Subset$Factor
-  cols_to_test <- data_Log[sapply(data_Log, function(x) is.numeric(x))]
-  Vect = colnames(cols_to_test)
-  data_Numeric$Factor <- data_Subset$Factor
-  if (log_transform == FALSE) {
-    data_mod = data_Numeric
-  }
-  else if (log_transform == TRUE) {
-    data_mod = data_Log
-  }
-  model = data_mod[, "Factor"]
-  if (test_type == "students") {
-    Run_Tests <- function(data_Log, Vect, model) {
-      results <- ldply(Vect, function(Metabolite) {
-        t_val = t.test(data_mod[[Metabolite]] ~ model)$statistic
-        p_val = t.test(data_mod[[Metabolite]] ~ model)$p.value
-        return(data.frame(Metabolite = Metabolite, t_value = t_val, 
-          pval = p_val))
-      })
-    }
-  }
-  else if (test_type == "mwu") {
-    Run_Tests <- function(data_Log, Vect, model) {
-      results <- ldply(Vect, function(Metabolite) {
-        t_val = wilcox.test(data_mod[[Metabolite]] ~ 
-          model)$statistic
-        p_val = wilcox.test(data_mod[[Metabolite]] ~ 
-          model)$p.value
-        return(data.frame(Metabolite = Metabolite, t_value = t_val, 
-          pval = p_val))
-      })
-    }
-  }
-  else if (test_type == "welch") {
-    Run_Tests <- function(data_Log, Vect, model) {
-      results <- ldply(Vect, function(Metabolite) {
-        t_val = t.test(data_mod[[Metabolite]] ~ model, 
-          var.equal = FALSE)$statistic
-        p_val = t.test(data_mod[[Metabolite]] ~ model, 
-          var.equal = FALSE)$p.value
-        return(data.frame(Metabolite = Metabolite, t_value = t_val, 
-          pval = p_val))
-      })
-    }
-  }
-  results <- Run_Tests(data_Log = data_Log, Vect = Vect, model = model)
-  data_Log$Factor <- factor(data_Log$Factor, levels = c(numerator, 
-    denominator))
-  data_Numeric$Factor = data_Log$Factor
-  Means <- data_Numeric %>% group_by(Factor) %>% summarise_all(funs(mean))
-  Means_T = as.data.frame(t(Means))
-  colnames(Means_T) <- as.character(unlist(Means_T[1, ]))
-  Means_T = Means_T[-1, ]
-  colnames(Means_T)[1] <- numerator
-  colnames(Means_T)[1] <- paste(colnames(Means_T)[1], "mean", 
-    sep = ".")
-  colnames(Means_T)[2] <- denominator
-  colnames(Means_T)[2] <- paste(colnames(Means_T)[2], "mean", 
-    sep = ".")
-  Means_T[, 3] <- as.numeric(as.character(Means_T[, 1]))/as.numeric(as.character(Means_T[, 
-    2]))
-  colnames(Means_T)[3] <- "Fold_Change"
-  Means_T[, 4] = log2(as.numeric(as.character(Means_T[, 3])))
-  colnames(Means_T)[4] = "log2FoldChange"
-  Means_T <- cbind(rownames(Means_T), data.frame(Means_T, 
-    row.names = NULL))
-  colnames(Means_T)[1] <- response_variable
-  st.err <- function(x) sd(x)/sqrt(length(x))
-  stdev <- data_Log %>% group_by(Factor) %>% summarise_all(funs(sd))
-  stdev <- as.data.frame(stdev)
-  rownames(stdev) <- stdev[, "Factor"]
-  stdev[, "Factor"] <- NULL
-  stdev_t = as.data.frame(t(stdev))
-  stdev_t <- cbind(rownames(stdev_t), data.frame(stdev_t, 
-    row.names = NULL))
-  colnames(stdev_t)[1] <- response_variable
-  colnames(stdev_t)[2] <- numerator
-  colnames(stdev_t)[2] <- paste(colnames(stdev_t)[2], "stdev", 
-    sep = ".")
-  colnames(stdev_t)[3] <- denominator
-  colnames(stdev_t)[3] <- paste(colnames(stdev_t)[3], "stdev", 
-    sep = ".")
-  SE <- data_Log %>% group_by(Factor) %>% summarise_all(funs(st.err))
-  SE <- as.data.frame(SE)
-  rownames(SE) <- SE[, "Factor"]
-  SE[, "Factor"] <- NULL
-  SE_t = as.data.frame(t(SE))
-  SE_t <- cbind(rownames(SE_t), data.frame(SE_t, row.names = NULL))
-  colnames(SE_t)[1] <- response_variable
-  colnames(SE_t)[2] <- numerator
-  colnames(SE_t)[2] <- paste(colnames(SE_t)[2], "std.err", 
-    sep = ".")
-  colnames(SE_t)[3] <- denominator
-  colnames(SE_t)[3] <- paste(colnames(SE_t)[3], "std.err", 
-    sep = ".")
-  colnames(results)[1] <- response_variable
-  results$padj = p.adjust(results$pval, method = p_adjust)
-  count_data = cbind(rownames(count_data), data.frame(count_data, 
-    row.names = NULL))
-  colnames(count_data)[1] <- "Metabolite"
-  results = merge(results, count_data, by = response_variable, 
-    all = TRUE)
-  results = merge(Means_T, results, by = response_variable, 
-    all.y = TRUE)
-  results = merge(SE_t, results, by = response_variable, all.y = TRUE)
-  results = merge(stdev_t, results, by = response_variable, 
-    all.y = TRUE)
-  class(results) = append(class(results), "cpd")
-  return(results)
-}
+### manually getting stats
+
+```{r}
+cleancountdata <- countdata %>% gather(key = "plot", value = "count", M_C_4_AB:O_H_32_AB) %>% mutate(type = gsub("_[0-9][0-9]*_AB","",plot)) %>% mutate(Min.Org = gsub("_[A-Z]","",type)) %>% unite(metabplot, c("Metabolite","Min.Org")) %>% mutate(metabplot = gsub("_2B", "", metabplot)) %>% mutate(type = gsub("_2B","", type))
+
+cleancountdata[cleancountdata == 0] <- 1
+cleancountdata$count <- log(cleancountdata$count)
+metab.stat <- cleancountdata %>%
+  group_by(metabplot) %>%
+  t_test(count ~ type) %>%
+  adjust_pvalue(method = "BH") %>%
+  add_significance()
+# summary; mean and st.dev:
+MCmean <- cleancountdata %>% group_by(metabplot, type) %>% filter(type == "M_C") %>%
+  summarise(meanC = mean(count), st.devC = sd(count)) %>% select(-type)
+MHmean <- cleancountdata %>% group_by(metabplot, type) %>% filter(type == "M_H") %>%
+  summarise(meanH = mean(count), st.devH = sd(count)) %>% select(-type)
+OCmean <- cleancountdata %>% group_by(metabplot, type) %>% filter(type == "O_C") %>%
+  summarise(meanC = mean(count), st.devC = sd(count)) %>% select(-type)
+OHmean <- cleancountdata %>% group_by(metabplot, type) %>% filter(type == "O_H") %>%
+  summarise(meanH = mean(count), st.devH = sd(count)) %>% select(-type)
+means <- rbind(merge(MCmean, MHmean), merge(OCmean,OHmean))
+# combine summary and stats:
+metab.stat.sum <- merge(metab.stat, means, by = "metabplot", all=TRUE)
+metab.stat.sum$foldchange <- metab.stat.sum$meanC/metab.stat.sum$meanH
+metab.stat.sum$log2foldchange <- log2(metab.stat.sum$foldchange)
+metab.stat.sum$Metabolite <- gsub("_[A-Z]","",metab.stat.sum$metabplot)
+# KEGG and heirarchy matching:
+KEGG_ID <- read_csv("KEGG.ID.csv")
+df <- merge(metab.stat.sum, KEGG_ID, by = "Metabolite", all = TRUE)
+df <- as.data.frame(assign_hierarchy(df, keep_unknowns = TRUE, identifier = "KEGG"))
+sig <- df[which(df$p < 0.05),]
+# just significant metabolites
+# write.csv(df, "Metabolites.withstat.KEGG.hierarchy.foldchange.csv")
 ```
 
----
+I found `r nrow(sig)` deferentially significant metabolites in both layers with `r sum(sig$group1 == "O_C")` being in the Organic layer while `r sum(sig$group1 == "M_C")` being in the Mineral layer.
 
-# Temporary Factor dataframe made in omu_summary 
+### fold change
+
 ```{r}
-omu_summary_edited(count_data = df, metadata = mymetadata, numerator = "H", denominator = "C", response_variable = "Metabolite", Factor = "Treatment", log_transform = FALSE, p_adjust = "BH", test_type = "welch")
+ggplot(metab.stat.sum) + geom_point(aes(x=log2foldchange, y=-log(p.adj), color = p.adj.signif)) + theme(legend.position = "none",
+              plot.title = element_text(size = rel(1.5), hjust = 0.5),
+              axis.title = element_text(size = rel(1.25)))
+```
+
+### To Do: look at slide 20 from AGU presentation and make similar image for metabolites
+
+```{r}
+df$meancountdifference <- df$meanH - df$meanC
+```
+
+ggplot for all metabolites in the Mineral layer
+```{r}
+ggplot(df[which(df$group1 == "M_C"),], aes(x=Metabolite, y=meancountdifference, color = p)) + geom_point() + coord_flip() + theme(axis.text.y = element_blank())
+```
+
+ggplot for all metabolites in the Organic layer
+```{r}
+ggplot(df[which(df$group1 == "O_C"),], aes(x=Metabolite, y=meancountdifference, color = p)) + geom_point() + coord_flip() + theme(axis.text.y = element_blank())
 ```
 

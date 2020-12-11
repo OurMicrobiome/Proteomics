@@ -1,0 +1,17 @@
+---
+title: "Proteomics in R"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+if (!requireNamespace("BiocManager", quietly=TRUE))
+    install.packages("BiocManager")
+## else
+library("BiocManager")
+BiocManager::install("RforProteomics")
+```
+
