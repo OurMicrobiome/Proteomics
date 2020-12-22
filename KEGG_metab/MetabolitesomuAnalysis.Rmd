@@ -79,7 +79,8 @@ OCmean <- cleancountdata %>% group_by(metabplot, type) %>% filter(type == "O_C")
   summarise(meanC = mean(count), st.devC = sd(count)) %>% select(-type)
 OHmean <- cleancountdata %>% group_by(metabplot, type) %>% filter(type == "O_H") %>%
   summarise(meanH = mean(count), st.devH = sd(count)) %>% select(-type)
-means <- rbind(merge(MCmean, MHmean), merge(OCmean,OHmean))
+means <- rbind(merge(MCmean, MHmean), merge(OCmean,OHmean)) 
+rm(MCmean, MHmean, OCmean,)
 # combine summary and stats:
 metab.stat.sum <- merge(metab.stat, means, by = "metabplot", all=TRUE)
 metab.stat.sum$foldchange <- metab.stat.sum$meanC/metab.stat.sum$meanH
@@ -89,7 +90,7 @@ metab.stat.sum$Metabolite <- gsub("_[A-Z]","",metab.stat.sum$metabplot)
 KEGG_ID <- read_csv("KEGG.ID.csv")
 df <- merge(metab.stat.sum, KEGG_ID, by = "Metabolite", all = TRUE)
 df <- as.data.frame(assign_hierarchy(df, keep_unknowns = TRUE, identifier = "KEGG"))
-sig <- df[which(df$p < 0.05),]
+sig <- df[which(df$p <= 0.05),]
 # just significant metabolites
 # write.csv(df, "Metabolites.withstat.KEGG.hierarchy.foldchange.csv")
 ```
@@ -108,14 +109,28 @@ ggplot(metab.stat.sum) + geom_point(aes(x=log2foldchange, y=-log(p.adj), color =
 
 ```{r}
 df$meancountdifference <- df$meanH - df$meanC
+makeStars <- function(x){
+  stars <- c("*", "ns")
+  vec <- c(0, 0.05 )
+  i <- findInterval(x, vec)
+  stars[i]
+}
+df$p.category <- makeStars(df$p)
 ```
 
 ggplot for all metabolites in the Mineral layer
+NOT FINISHED
+
 ```{r}
-ggplot(df[which(df$group1 == "M_C"),], aes(x=Metabolite, y=meancountdifference, color = p)) + geom_point() + coord_flip() + theme(axis.text.y = element_blank())
+x <- df[which(df$p.category),]
+x$sig <- "sig"
+df <- merge(df, x, all = TRUE)
+# df %>% mutate(group1 = replace(group1, val = "M_C", "Mineral")) %>% mutate(group1 = replace(group1, val = "O_C", "Organic"))
+# ggplot(df[which(df$sig == "sig"),], aes(x=Metabolite, y=meancountdifference)) + geom_point() + theme(axis.text.y = element_text(hjust = 0.85)) + ylab("average count difference (H - C)") + xlab("Metabolite") + coord_flip() + ggtitle("Significant Metabolites") + facet_grid(~group1)
 ```
 
-ggplot for all metabolites in the Organic layer
+preliminary figure; not informative - ggplot for all metabolites in the Organic layer
+
 ```{r}
 ggplot(df[which(df$group1 == "O_C"),], aes(x=Metabolite, y=meancountdifference, color = p)) + geom_point() + coord_flip() + theme(axis.text.y = element_blank())
 ```
