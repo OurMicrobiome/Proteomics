@@ -1,7 +1,9 @@
 ---
-title: "omu using KEGGmatches"
+title: "Significant Metabolites matched to KEGG"
 author: "Hanna Choi"
-output: html_document
+output:
+  html_document: default
+  pdf_document: default
 ---
 
 ## content
@@ -43,21 +45,6 @@ DF <- assign_hierarchy(count_data = c57_nos2KO_mouse_countDF, keep_unknowns = TR
 theirsummary <- omu_summary(count_data = DF, metadata = c57_nos2KO_mouse_metadata, numerator = "Strep", denominator = "Mock", response_variable = "Metabolite", Factor = "Treatment", log_transform = TRUE, p_adjust = "BH", test_type = "welch")
 ```
 
-### Assigning omu hierarchical class data using the KEGG Compound Name
-
-```{r}
-df <- assign_hierarchy(count_data = countdata, keep_unknowns = TRUE, identifier = "KEGG")
-```
-
-### 'omu_summary' intro for summary statistical data using data and metadata; this doesn't work.
-
-> I've tried changing the type of values in the df columns from character to factor and double to integer to mirror their example data
-
-```{r eval = FALSE}
-df_stats <- omu_summary(count_data = df, metadata = mymetadata, numerator = "H", denominator = "C", response_variable = "Metabolite", Factor = "Treatment", log_transform = FALSE, p_adjust = "BH", test_type = "welch")
-# if csv version of data is read, Error in `.rowNamesDF<-`(x, value = value) : invalid 'row.names' length
-```
-
 ### manually getting stats
 
 ```{r}
@@ -79,8 +66,10 @@ OCmean <- cleancountdata %>% group_by(metabplot, type) %>% filter(type == "O_C")
   summarise(meanC = mean(count), st.devC = sd(count)) %>% select(-type)
 OHmean <- cleancountdata %>% group_by(metabplot, type) %>% filter(type == "O_H") %>%
   summarise(meanH = mean(count), st.devH = sd(count)) %>% select(-type)
-means <- rbind(merge(MCmean, MHmean), merge(OCmean,OHmean)) 
-rm(MCmean, MHmean, OCmean,OHmean)
+Minerals <- merge(MCmean, MHmean) %>% mutate(Horizon = "Mineral")
+Organics <- merge(OCmean, OHmean) %>% mutate(Horizon = "Organic")
+means <- rbind(Minerals, Organics) 
+rm(MCmean, MHmean, OCmean,OHmean, Minerals, Organics)
 # combine summary and stats:
 metab.stat.sum <- merge(metab.stat, means, by = "metabplot", all=TRUE)
 metab.stat.sum$foldchange <- metab.stat.sum$meanC/metab.stat.sum$meanH
@@ -91,10 +80,26 @@ KEGG_ID <- read_csv("KEGG.ID.csv")
 df <- merge(metab.stat.sum, KEGG_ID, by = "Metabolite", all = TRUE)
 df <- as.data.frame(assign_hierarchy(df, keep_unknowns = TRUE, identifier = "KEGG"))
 sig <- df[which(df$p <= 0.05),]
-sig[1]
-df(which(df$Metabolite == "1,3-dihydroxyacetone"))
+head(sig)
 # just significant metabolites
 # write.csv(df, "Metabolites.withstat.KEGG.hierarchy.foldchange.csv")
+df$meancountdifference <- df$meanH - df$meanC
+makeStars <- function(x){
+  stars <- c("*", "ns")
+  vec <- c(0, 0.05 )
+  i <- findInterval(x, vec)
+  stars[i]
+}
+sig.legend <- function(x){
+  label <- c("H>C", "H<C")
+  vec <- c(-10, 0 )
+  i <- findInterval(x, vec)
+  label[i]
+}
+df$p.category <- makeStars(df$p)
+df[which(df$p.category == "*"),28] <- sig.legend(df[which(df$p.category == "*"),26])
+df[is.na(df$V28),28] <- "H=C"
+names(df)[names(df) == "V28"] <- "legend"
 ```
 
 I found `r nrow(sig)` deferentially significant metabolites in both layers with `r sum(sig$group1 == "O_C")` being in the Organic layer while `r sum(sig$group1 == "M_C")` being in the Mineral layer.
@@ -109,23 +114,14 @@ ggplot(metab.stat.sum) + geom_point(aes(x=log2foldchange, y=-log(p.adj), color =
 
 ### To Do: look at slide 20 from AGU presentation and make similar image for metabolites
 
-```{r}
-df$meancountdifference <- df$meanH - df$meanC
-makeStars <- function(x){
-  stars <- c("*", "ns")
-  vec <- c(0, 0.05 )
-  i <- findInterval(x, vec)
-  stars[i]
-}
-df$p.category <- makeStars(df$p)
+```{r fig.height=10, fig.width=10}
+figure <- df[which(df$Metabolite %in% sig$Metabolite),]
+figure <- figure[order(figure$Class),]
+figure$Metabolite <- factor(figure$Metabolite, levels = unique(figure$Metabolite))
+datatable(figure)
+ggplot(figure, aes(x=Metabolite, y=meancountdifference, color = legend)) + geom_point(stat="identity") + ylab("average count difference (H - C)") + xlab("Metabolite") + coord_flip() + ggtitle("Significant Metabolites") + facet_grid(~Horizon) + 
+    scale_color_manual(values=c('dodgerblue3','gray','magenta2'))
 ```
 
-```{r}
-x <- df[which(df$Metabolite %in% sig$Metabolite),]
-# df %>% mutate(group1 = replace(group1, val = "M_C", "Mineral")) %>% mutate(group1 = replace(group1, val = "O_C", "Organic"))
-significantmetabolites <- ggplot(df[which(df$Metabolite %in% sig$Metabolite),], aes(x=Metabolite, y=meancountdifference, color = p.category)) + geom_point() + theme(axis.text.y = element_text(hjust = 0.85)) + ylab("average count difference (H - C)") + xlab("Metabolite") + coord_flip() + ggtitle("Significant Metabolites") + facet_grid(~group1)
-mutate(df[,4], group1 = ifelse(group1 == "M_C", "Mineral", group1))
-significantmetabolites
-```
 
 
