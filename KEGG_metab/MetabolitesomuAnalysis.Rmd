@@ -34,7 +34,6 @@ mymetadata <- read_csv("EMSL_PNNL_metadata.csv")[-1] #ditto
 mymetadata <- mymetadata %>%
   mutate(Grouped = gsub("_", "", Grouped)) %>%
   mutate_if(is.character, as.factor)
-head(mymetadata)
 ```
 
 ```{r their example data analysis}
@@ -112,16 +111,18 @@ ggplot(metab.stat.sum) + geom_point(aes(x=log2foldchange, y=-log(p.adj), color =
               axis.title = element_text(size = rel(1.25)))
 ```
 
-### To Do: look at slide 20 from AGU presentation and make similar image for metabolites
+
+### Significant Change in metabolite abundance
 
 ```{r fig.height=10, fig.width=10}
 figure <- df[which(df$Metabolite %in% sig$Metabolite),]
 figure <- figure[order(figure$Class),]
 figure$Metabolite <- factor(figure$Metabolite, levels = unique(figure$Metabolite))
 datatable(figure)
-ggplot(figure, aes(x=Metabolite, y=meancountdifference, color = legend)) + geom_point(stat="identity") + ylab("average count difference (H - C)") + xlab("Metabolite") + coord_flip() + ggtitle("Significant Metabolites") + facet_grid(~Horizon) + 
+ggplot(figure, aes(x=Metabolite, y=meancountdifference, color = legend)) + geom_point(stat="identity") + ylab("average count difference (C-H)") + xlab("Metabolite") + coord_flip() + ggtitle("Significant Metabolites") + facet_grid(~Horizon) + 
     scale_color_manual(values=c('dodgerblue3','gray','magenta2'))
 ```
 
+### Edited Figure
 
-
+![](significantmetabolites.jpg)
