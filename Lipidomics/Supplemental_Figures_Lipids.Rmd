@@ -5,6 +5,8 @@ date: "11/17/2020"
 output:
   html_document:
     code_folding: hide
+editor_options: 
+  chunk_output_type: console
 ---
 <center>
 
@@ -27,14 +29,12 @@ names(NEG) <- gsub(x=names(POS), pattern="_NEG", replacement="")
 POS$charge <- "POS"
 NEG$charge <- "NEG"
 data <- rbind(POS, NEG) # lipid data with counts
-```
-```{r metadata of only significant, message=FALSE}
+
 summary_class <- read_csv("significantlipidswithformula.csv")[-1] # made in comparealigned .Rmd
 summary_class <- summary_class %>%
-  rename(Main_Class = "Main Class") #getting rid of the space in column
+  rename(Main_Class = `Main Class`) #getting rid of the space in column
 summary_class <- summary_class[order(summary_class$Main_Class, summary_class$Standardized_Difference_Control_minus_Heated),] #ordering the metadata
-```
-```{r workable dataframe df for ggplot}
+
 df <- merge(summary_class, data, by="row.identity", all=FALSE)
 # For the dflong below:
 # columns 17-43 is counts 
@@ -50,11 +50,75 @@ dflong <- df[-c(11:16)] %>%
   arrange(soil_type)
 dflongMineral <- dflong[which(dflong$soil_type == "Mineral"),]
 dflongOrganic <- dflong[which(dflong$soil_type == "Organic"),]
+dflong$CoverH <- dflong$Control_Average/dflong$Heated_Average
+
+data$category <- gsub("\\(.*", "", data$row.identity)
+dfdf <- data %>% gather(plot, count, Blanch_Nat_Lip_C_12_AB_M_17:Blanch_Nat_Lip_H_4_AB_M_05) %>%
+  mutate(plot=gsub("Blanch_Nat_Lip_", "", plot)) %>%
+  mutate(plot=gsub("[0-9]|_|A|B", "", plot)) %>%
+  mutate(plot=factor(plot), category=factor(category)) %>%
+  mutate(treatment=gsub("O|M", "",plot)) %>%
+  mutate(plot=gsub("H|C", "", plot)) %>%
+  unite(lipid, c(treatment, category), remove=FALSE) %>%
+  mutate(lipid=factor(lipid))
+#t <- dfdf %>%
+#  group_by(category, lipid) %>%
+#  arrange(category, lipid, desc(count)) %>%
+#  mutate(mx = max(count))
+
+d <- dfdf %>% group_by(row.identity,plot,treatment) %>%
+  summarise(average =mean(count))
+#write.csv(d, "Lipid-averages.csv")
+testcon <- dfdf %>% group_by(row.identity,plot,treatment) %>%
+  summarise(average =mean(count)) %>% filter(plot=="M", treatment=="C") %>% arrange(desc(average))
+testcon$row.identity <- factor(testcon$row.identity)
+levelorder <- testcon$row.identity
+testconOrganic <- dfdf %>% group_by(row.identity,plot,treatment) %>%
+  summarise(average =mean(count)) %>% filter(plot=="O", treatment=="C") %>% arrange(desc(average))
+testconOrganic$row.identity <- factor(testconOrganic$row.identity)
+levelorderOrganic <- testconOrganic$row.identity
+#significantlipidswithformula <- read_csv("Lipidomics/significantlipidswithformula.csv")
+#write.csv(levelorder, "significanceorderorganic.csv")
+``` 
+```{r}
+significantlipidswithformula$P <- "P"
+significantlipidswithformula$test <- significantlipidswithformula$row.identity
+d.with.signif <- left_join(d,significantlipidswithformula[,c(2,16,17)])
+d.with.signif[is.na(d.with.signif)] <- "N"
+d.with.signif$test <- gsub("N", "", d.with.signif$test)
+d.with.signif$test <- gsub("N", "", d.with.signif$test)
+```
+https://stackoverflow.com/questions/63082048/how-can-i-add-asterisks-for-the-significant-p-values-in-ggplot
+```{r}
+#write.csv(d.with.signif, "MineralHorizon.Lipidfigure.data.csv")
+#Actually both Horizons :
+MineralHorizon_Lipidfigure_dataeditedp <- read_csv("MineralHorizon.Lipidfigure.data.csv")
+```
+```{r}
+Min <- MineralHorizon_Lipidfigure_dataeditedp[which(MineralHorizon_Lipidfigure_dataeditedp$plot=="M"),]
+Min.Figure <- ggplot(MineralHorizon_Lipidfigure_dataeditedp[which(MineralHorizon_Lipidfigure_dataeditedp$plot=="M"),], aes(x=factor(row.identity, level=levelorder), y=log(average), color=treatment)) + 
+  geom_point() + 
+  geom_text(data=Min, aes(label = test), hjust = -1.5, vjust=-3, size=2) +
+  coord_flip() +
+  theme(axis.text=element_text(size=5), axis.title.y=element_blank(), axis.title.x=element_blank(), legend.position="none") + ggtitle("A. Mineral Horizon")
+ggsave("Min.Figure.png")
+```
+
+```{r}
+Org <- MineralHorizon_Lipidfigure_dataeditedp[which(MineralHorizon_Lipidfigure_dataeditedp$plot=="O"),]
+
+Org.Figure <- ggplot(Org, aes(x=factor(row.identity, level=levelorderOrganic), y=log(average), color=treatment)) + 
+  geom_point() + 
+  geom_text(data=Org, aes(label = test), hjust = -1.5, vjust=-3, size=1) +
+  coord_flip() +
+  theme(axis.text=element_text(size=5), axis.title.y=element_blank(), axis.title.x=element_blank(), legend.position="none") + ggtitle("B. Organic Horizon")
+ggsave("Org.Figure.png")
 ```
 
 # Overarching Lipid Figure
 ```{r slightly messy but all significant lipids ordered by class, fig.cap = "Lipidomic data found 31 lipids that were altered in abundance significantly. 1 of the 31 lipid abundances were found to have increased due to an increase in temperature. From the figure, TG is Triacylglyerol"}
 lipidfigureMineral <- ggplot(data=dflongMineral, aes(x=row.id, y=log(count), group_by(Main_Class, treatment), fill = treatment)) + geom_boxplot(show.legend = FALSE) + coord_flip() + scale_fill_manual(values = c( "#082BEA", "#EA0D08")) + scale_color_manual(values = c("#D4E126", "#12EF3A")) + ggtitle("Significant Lipids Heated v. Control Soil Mineral Plots") + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())
+lipidfigureMineral
 lipidfigureOrganic <- ggplot(data=dflongOrganic, aes(x=row.id, y=log(count), group_by(Main_Class, treatment), fill = treatment)) + geom_boxplot() + coord_flip() + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + scale_fill_manual(values = c( "#082BEA", "#EA0D08")) + scale_color_manual(values = c("#D4E126", "#12EF3A")) + ggtitle("Significant Lipids Heated v. Control Soil Organic Plots")
 lipidfigure <- ggarrange(lipidfigureMineral, lipidfigureOrganic, ncol=1)
 lipidfigure
